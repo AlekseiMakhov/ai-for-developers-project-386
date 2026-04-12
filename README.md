@@ -10,19 +10,19 @@
 
 Управляйте типами событий: задайте продолжительность, часы приёма, цвет и поделитесь публичной ссылкой.
 
-![Дашборд десктоп](source/01-dashboard-events-desktop.png)
+![Дашборд десктоп](layout/01-dashboard-events-desktop.png)
 
 Интерфейс адаптирован под планшет и мобильный:
 
 | Планшет | Мобильный |
 |---------|-----------|
-| ![Планшет](source/07-dashboard-events-tablet.png) | ![Мобильный](source/08-dashboard-events-mobile.png) |
+| ![Планшет](layout/07-dashboard-events-tablet.png) | ![Мобильный](layout/08-dashboard-events-mobile.png) |
 
 ### Создание события
 
 Настройте новый тип события: название, slug, продолжительность, описание, цвет, рабочие дни и часы.
 
-![Создание события](source/02-dashboard-create-event-modal.png)
+![Создание события](layout/02-dashboard-create-event-modal.png)
 
 ### Публичное бронирование
 
@@ -30,25 +30,25 @@
 
 **Шаг 1 — Выбор даты и времени**
 
-![Выбор слота](source/03-public-booking-slot-picker.png)
+![Выбор слота](layout/03-public-booking-slot-picker.png)
 
 **Шаг 2 — Контактные данные**
 
-![Форма бронирования](source/04-public-booking-form.png)
+![Форма бронирования](layout/04-public-booking-form.png)
 
 **Шаг 3 — Подтверждение**
 
-![Бронирование подтверждено](source/05-public-booking-confirmed.png)
+![Бронирование подтверждено](layout/05-public-booking-confirmed.png)
 
 ### Дашборд — бронирования
 
 Список предстоящих и прошедших встреч. Отмена в один клик.
 
-![Бронирования десктоп](source/06-dashboard-bookings-desktop.png)
+![Бронирования десктоп](layout/06-dashboard-bookings-desktop.png)
 
 На мобильном прошедшие и отменённые встречи вынесены в отдельный раздел:
 
-![Отменённые на мобильном](source/10-dashboard-bookings-mobile-cancelled.png)
+![Отменённые на мобильном](layout/10-dashboard-bookings-mobile-cancelled.png)
 
 ---
 

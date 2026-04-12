@@ -1,0 +1,577 @@
+openapi: 3.0.0
+info:
+  title: SlotBook API
+  version: 0.0.0
+tags: []
+paths:
+  /auth/login:
+    post:
+      operationId: AuthRoutes_login
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+  /auth/logout:
+    post:
+      operationId: AuthRoutes_logout
+      parameters: []
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+  /auth/me:
+    get:
+      operationId: AuthRoutes_me
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /auth/register:
+    post:
+      operationId: AuthRoutes_register
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+  /bookings:
+    get:
+      operationId: BookingRoutes_list
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+  /bookings/cancel/{cancelToken}:
+    get:
+      operationId: BookingRoutes_cancelByToken
+      parameters:
+        - name: cancelToken
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+  /bookings/confirm/{token}:
+    get:
+      operationId: BookingRoutes_confirmByToken
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+  /bookings/{id}:
+    get:
+      operationId: BookingRoutes_get
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+  /bookings/{id}/cancel:
+    patch:
+      operationId: BookingRoutes_cancel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+  /bookings/{id}/confirm:
+    patch:
+      operationId: BookingRoutes_confirm
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+  /public/{slug}/schedules/{scheduleId}/bookings:
+    post:
+      operationId: PublicBookingRoutes_create
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingCreate'
+  /public/{slug}/schedules/{scheduleId}/slots:
+    get:
+      operationId: SlotRoutes_list
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Slot'
+  /schedules:
+    get:
+      operationId: ScheduleRoutes_list
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Schedule'
+    post:
+      operationId: ScheduleRoutes_create
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleCreate'
+  /schedules/{id}:
+    get:
+      operationId: ScheduleRoutes_get
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+    put:
+      operationId: ScheduleRoutes_update
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleUpdate'
+    delete:
+      operationId: ScheduleRoutes_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+components:
+  schemas:
+    Booking:
+      type: object
+      required:
+        - id
+        - scheduleId
+        - slotId
+        - guestName
+        - guestEmail
+        - status
+        - confirmationToken
+        - cancelToken
+        - createdAt
+      properties:
+        id:
+          type: string
+        scheduleId:
+          type: string
+        slotId:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestNote:
+          type: string
+        status:
+          $ref: '#/components/schemas/BookingStatus'
+        confirmationToken:
+          type: string
+        cancelToken:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    BookingCreate:
+      type: object
+      required:
+        - slotId
+        - guestName
+        - guestEmail
+      properties:
+        slotId:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestNote:
+          type: string
+    BookingStatus:
+      type: string
+      enum:
+        - pending
+        - confirmed
+        - cancelled
+    Schedule:
+      type: object
+      required:
+        - id
+        - userId
+        - name
+        - duration
+        - bufferBefore
+        - bufferAfter
+        - availability
+        - timezone
+        - isActive
+        - slug
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        duration:
+          type: integer
+          format: int32
+        bufferBefore:
+          type: integer
+          format: int32
+        bufferAfter:
+          type: integer
+          format: int32
+        availability:
+          $ref: '#/components/schemas/WeeklyAvailability'
+        timezone:
+          type: string
+        isActive:
+          type: boolean
+        color:
+          type: string
+        slug:
+          type: string
+    ScheduleCreate:
+      type: object
+      required:
+        - name
+        - duration
+        - bufferBefore
+        - bufferAfter
+        - availability
+        - timezone
+        - isActive
+        - slug
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        duration:
+          type: integer
+          format: int32
+        bufferBefore:
+          type: integer
+          format: int32
+        bufferAfter:
+          type: integer
+          format: int32
+        availability:
+          $ref: '#/components/schemas/WeeklyAvailability'
+        timezone:
+          type: string
+        isActive:
+          type: boolean
+        color:
+          type: string
+        slug:
+          type: string
+    ScheduleUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        duration:
+          type: integer
+          format: int32
+        bufferBefore:
+          type: integer
+          format: int32
+        bufferAfter:
+          type: integer
+          format: int32
+        availability:
+          $ref: '#/components/schemas/WeeklyAvailability'
+        timezone:
+          type: string
+        isActive:
+          type: boolean
+        color:
+          type: string
+        slug:
+          type: string
+    Slot:
+      type: object
+      required:
+        - id
+        - scheduleId
+        - startAt
+        - endAt
+        - status
+      properties:
+        id:
+          type: string
+        scheduleId:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/SlotStatus'
+    SlotStatus:
+      type: string
+      enum:
+        - available
+        - booked
+        - blocked
+    TimeRange:
+      type: object
+      required:
+        - start
+        - end
+      properties:
+        start:
+          type: string
+        end:
+          type: string
+    TokenResponse:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - timezone
+        - slug
+        - createdAt
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        slug:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    UserCreate:
+      type: object
+      required:
+        - email
+        - name
+        - password
+        - timezone
+        - slug
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        password:
+          type: string
+        timezone:
+          type: string
+        slug:
+          type: string
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    WeeklyAvailability:
+      type: object
+      properties:
+        monday:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeRange'
+        tuesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeRange'
+        wednesday:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeRange'
+        thursday:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeRange'
+        friday:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeRange'
+        saturday:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeRange'
+        sunday:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeRange'
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+    variables: {}
