@@ -10,9 +10,8 @@ import "./routes/bookings.tsp";
 
 using TypeSpec.Http;
 
-@service({
+@service(#{
   title: "SlotBook API",
-  version: "1.0.0",
 })
 @server("http://localhost:8000", "Local development server")
 namespace SlotBook;
