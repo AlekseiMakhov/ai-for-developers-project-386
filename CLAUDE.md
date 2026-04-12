@@ -42,7 +42,7 @@ A time-slot booking service similar to cal.com. Users can create availability sc
 - **SQLAlchemy** (async) — ORM
 - **Alembic** — database migrations
 - **asyncpg** — async PostgreSQL driver
-- **Pydantic v2** — request/response validation
+  - **Pydantic v2** — request/response va/////lidation
 - **pytest + pytest-asyncio** — unit and integration tests
 - **httpx** — async test client
 
@@ -51,9 +51,11 @@ A time-slot booking service similar to cal.com. Users can create availability sc
 - **shadcn-vue** — UI component library (built on Radix Vue + Tailwind)
 - **Tailwind CSS v3** — utility-first styling
 - **@schedule-x/vue** — calendar/schedule component
-- **Pinia** — state management
+- **tanstack/useQuery** — for queries
 - **Vue Router** — routing
 - **VeeValidate + Zod** — form validation
+- **vue-i18n** — internationalization (ru + en)
+- **@vueuse/core** — `useInjectionState` for shared state composition
 - **Playwright** — e2e tests
 
 ### Infrastructure
