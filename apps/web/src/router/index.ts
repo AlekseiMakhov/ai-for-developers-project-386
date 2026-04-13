@@ -36,7 +36,51 @@ const router = createRouter({
       ],
     },
 
-    // Public booking routes — added in iteration 3
+    // Public booking routes
+    {
+      path: '/book',
+      component: () => import('@/components/layout/PublicLayout.vue'),
+      meta: { public: true },
+      children: [
+        {
+          path: ':slug',
+          name: 'public-profile',
+          component: () => import('@/views/public/PublicProfileView.vue'),
+        },
+        {
+          path: ':slug/schedules/:scheduleId/slots',
+          name: 'public-slots',
+          component: () => import('@/views/public/SlotPickerView.vue'),
+        },
+        {
+          path: ':slug/schedules/:scheduleId/book',
+          name: 'public-booking-form',
+          component: () => import('@/views/public/BookingFormView.vue'),
+        },
+        {
+          path: ':slug/schedules/:scheduleId/done',
+          name: 'public-booking-confirm',
+          component: () => import('@/views/public/BookingConfirmView.vue'),
+        },
+      ],
+    },
+
+    // Token-based guest actions (from email links)
+    {
+      path: '/bookings/confirm/:token',
+      name: 'booking-confirm-token',
+      component: () => import('@/views/public/BookingConfirmView.vue'),
+      meta: { public: true },
+      props: (route) => ({ confirmToken: route.params.token }),
+    },
+    {
+      path: '/bookings/cancel/:token',
+      name: 'booking-cancel-token',
+      component: () => import('@/views/public/BookingConfirmView.vue'),
+      meta: { public: true },
+      props: (route) => ({ cancelToken: route.params.token }),
+    },
+
     { path: '/', redirect: '/dashboard' },
     { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
   ],

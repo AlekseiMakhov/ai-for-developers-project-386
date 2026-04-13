@@ -57,9 +57,17 @@ export function clearToken(): void {
   localStorage.removeItem('access_token')
 }
 
-export function authRequest<T>(path: string, options: Omit<RequestOptions, 'token'> = {}): Promise<T> {
+export async function authRequest<T>(path: string, options: Omit<RequestOptions, 'token'> = {}): Promise<T> {
   const token = getToken()
-  return request<T>(path, { ...options, token: token ?? undefined })
+  try {
+    return await request<T>(path, { ...options, token: token ?? undefined })
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+      clearToken()
+      window.location.href = '/login'
+    }
+    throw err
+  }
 }
 
 export { request }
