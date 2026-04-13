@@ -8,7 +8,8 @@ export const useBookingStore = defineStore('booking', () => {
   const profile = ref<PublicProfile | null>(null)
   const selectedScheduleId = ref<string | null>(null)
   const selectedDate = ref<string | null>(null)
-  const availableSlots = ref<Slot[]>([])
+  const availableDates = ref<string[] | null>(null)
+  const dateSlots = ref<Slot[]>([])
   const selectedSlot = ref<Slot | null>(null)
   const createdBooking = ref<Booking | null>(null)
 
@@ -25,12 +26,20 @@ export const useBookingStore = defineStore('booking', () => {
     }
   }
 
+  async function fetchAvailableDates(slug: string, scheduleId: string) {
+    try {
+      availableDates.value = await bookingsApi.getAvailableDates(slug, scheduleId)
+    } catch {
+      availableDates.value = []
+    }
+  }
+
   async function fetchSlots(slug: string, scheduleId: string, date: string) {
     isLoading.value = true
     try {
       selectedScheduleId.value = scheduleId
       selectedDate.value = date
-      availableSlots.value = await bookingsApi.getAvailableSlots(slug, scheduleId, date)
+      dateSlots.value = await bookingsApi.getSlotsForDate(slug, scheduleId, date)
     } finally {
       isLoading.value = false
     }
@@ -67,7 +76,8 @@ export const useBookingStore = defineStore('booking', () => {
     profile.value = null
     selectedScheduleId.value = null
     selectedDate.value = null
-    availableSlots.value = []
+    availableDates.value = null
+    dateSlots.value = []
     selectedSlot.value = null
     createdBooking.value = null
   }
@@ -76,12 +86,14 @@ export const useBookingStore = defineStore('booking', () => {
     profile,
     selectedScheduleId,
     selectedDate,
-    availableSlots,
+    availableDates,
+    dateSlots,
     selectedSlot,
     createdBooking,
     bookings,
     isLoading,
     fetchProfile,
+    fetchAvailableDates,
     fetchSlots,
     submitBooking,
     fetchBookings,

@@ -80,6 +80,7 @@ const onSubmit = handleSubmit(async (values) => {
           <Button type="submit" class="w-full" :disabled="authStore.isLoading">
             {{ authStore.isLoading ? 'Вход...' : 'Войти' }}
           </Button>
+
           <p class="text-base text-muted-foreground text-center">
             Нет аккаунта?
             <RouterLink to="/register" class="text-primary underline-offset-4 hover:underline">
@@ -88,6 +89,21 @@ const onSubmit = handleSubmit(async (values) => {
           </p>
         </CardFooter>
       </form>
+
+      <div class="px-6 pb-6 flex flex-col gap-3">
+        <div class="relative w-full flex items-center gap-2">
+          <div class="flex-1 border-t border-border" />
+          <span class="text-xs text-muted-foreground">или</span>
+          <div class="flex-1 border-t border-border" />
+        </div>
+
+        <button
+          class="w-full rounded-md border border-dashed border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          @click="authStore.login({ email: 'john@example.com', password: 'changeme' })"
+        >
+          Демо-аккаунт
+        </button>
+      </div>
     </Card>
   </div>
 </template>

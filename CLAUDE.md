@@ -4,6 +4,8 @@
 
 A time-slot booking service similar to cal.com. Users can create availability schedules, share booking links, and allow others to book appointments. The system supports multiple service types, time zones, and calendar integrations.
 
+There are two roles: **host** (authenticated calendar owner) and **guests** (book without an account). A default host account **John Doe** is seeded on first run so the system is usable immediately without manual registration.
+
 ---
 
 ## Monorepo Structure
@@ -42,7 +44,7 @@ A time-slot booking service similar to cal.com. Users can create availability sc
 - **SQLAlchemy** (async) — ORM
 - **Alembic** — database migrations
 - **asyncpg** — async PostgreSQL driver
-  - **Pydantic v2** — request/response va/////lidation
+- **Pydantic v2** — request/response validation
 - **pytest + pytest-asyncio** — unit and integration tests
 - **httpx** — async test client
 
@@ -109,7 +111,7 @@ packages/contract/
 - `duration: integer` — in minutes (e.g. 30, 60)
 - `bufferBefore: integer` — buffer time before slot
 - `bufferAfter: integer` — buffer time after slot
-- `availability: WeeklyAvailability` — working hours per day of week
+- `availability: WeeklyAvailability` — working hours per day of week; defaults to Mon–Fri 09:00–18:00
 - `timezone: string`
 - `isActive: boolean`
 
@@ -121,7 +123,7 @@ packages/contract/
 
 **TimeRange**
 - `start: string` — "09:00"
-- `end: string` — "17:00"
+- `end: string` — "18:00"
 
 **Slot**
 - `id: uuid`
@@ -168,7 +170,6 @@ GET    /bookings                              # Host: list all bookings
 GET    /bookings/{id}
 PATCH  /bookings/{id}/confirm
 PATCH  /bookings/{id}/cancel
-GET    /bookings/confirm/{token}              # Guest confirms booking
 GET    /bookings/cancel/{cancelToken}         # Guest cancels booking
 ```
 
@@ -205,13 +206,15 @@ apps/api/
 │   │   ├── schedule.py        # Availability computation
 │   │   ├── slot.py            # Slot generation logic
 │   │   ├── booking.py         # Booking lifecycle
-│   │   └── email.py           # Confirmation/cancellation emails
+│   │   └── email.py           # Cancellation emails (no confirmation email)
 │   └── utils/
 │       ├── timezone.py
 │       └── tokens.py
 ├── alembic/
 │   ├── env.py
 │   └── versions/
+├── scripts/
+│   └── seed.py                # Seeds default John Doe user on first run
 ├── tests/
 │   ├── conftest.py            # Fixtures: test DB, async client
 │   ├── test_auth.py
@@ -226,8 +229,17 @@ apps/api/
 
 ### Key Business Logic
 
+**Default user (John Doe):**
+- Seeded via `scripts/seed.py` on first run (or via startup event if DB is empty)
+- Credentials configurable via env: `DEFAULT_USER_EMAIL`, `DEFAULT_USER_PASSWORD`, `DEFAULT_USER_NAME`, `DEFAULT_USER_SLUG`
+- Default: email `john@example.com`, password `changeme`, name `John Doe`, slug `john`
+
+**Default schedule availability:**
+- When a new schedule is created without specifying `availability`, it defaults to Mon–Fri, 09:00–18:00
+- Buffer before/after defaults to 0
+
 **Slot generation:**
-- On schedule create/update, generate available slots for the next N days (configurable, default 60)
+- On schedule create/update, generate available slots for the next **14 days** (not configurable at runtime)
 - Respect `bufferBefore` / `bufferAfter` between slots
 - Regenerate slots when availability settings change
 - Block slots that overlap with existing confirmed bookings
@@ -235,9 +247,11 @@ apps/api/
 **Booking flow:**
 1. Guest fetches available slots for a date
 2. Guest submits booking (name, email, note)
-3. System creates booking with status `pending`, sends confirmation email to guest
-4. Guest clicks confirmation link → status → `confirmed`, host notified
-5. Either party can cancel → status → `cancelled`, other party notified
+3. **Conflict rule:** before creating, check that no confirmed booking across **any schedule of the same host** overlaps the requested time window. Return 409 if conflict.
+4. System creates booking with status `pending`
+5. On success, the API returns full booking details — frontend shows them immediately on the confirmation page (no email link needed)
+6. Host can confirm (`pending` → `confirmed`) or cancel from the dashboard
+7. Guest can cancel via cancel link → status `cancelled`, slot freed
 
 ### Environment Variables
 ```env
@@ -245,15 +259,15 @@ DATABASE_URL=postgresql+asyncpg://user:password@db:5432/booking
 SECRET_KEY=...
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
-SMTP_HOST=...
-SMTP_PORT=587
-SMTP_USER=...
-SMTP_PASSWORD=...
 FRONTEND_URL=http://localhost:5173
+DEFAULT_USER_EMAIL=john@example.com
+DEFAULT_USER_PASSWORD=changeme
+DEFAULT_USER_NAME=John Doe
+DEFAULT_USER_SLUG=john
 ```
 
 ### Testing Strategy
-- **Unit tests**: services (slot generation, availability logic)
+- **Unit tests**: services (slot generation, availability logic, conflict detection)
 - **Integration tests**: API endpoints via `httpx.AsyncClient` with test database
 - Use `pytest-asyncio` with `asyncio_mode = "auto"`
 - Separate test database, rolled back after each test via transactions
@@ -284,8 +298,7 @@ apps/web/
 │   │   └── index.ts
 │   ├── views/
 │   │   ├── auth/
-│   │   │   ├── LoginView.vue
-│   │   │   └── RegisterView.vue
+│   │   │   └── LoginView.vue           # Login only (no register in public UI)
 │   │   ├── dashboard/
 │   │   │   ├── DashboardView.vue       # Overview + upcoming bookings
 │   │   │   ├── SchedulesView.vue       # List of schedules
@@ -295,7 +308,7 @@ apps/web/
 │   │       ├── PublicProfileView.vue   # Guest: pick schedule
 │   │       ├── SlotPickerView.vue      # Guest: pick date/time slot
 │   │       ├── BookingFormView.vue     # Guest: enter details
-│   │       └── BookingConfirmView.vue  # Guest: confirmation page
+│   │       └── BookingConfirmView.vue  # Guest: shows full booking info on success (no "go home" button)
 │   ├── components/
 │   │   ├── ui/                # shadcn-vue components (auto-generated)
 │   │   ├── schedule/
@@ -335,28 +348,30 @@ apps/web/
 `SlotPicker.vue` for the **public booking flow** — custom component (not schedule-x):
 - Shows a grid of available time slots for the selected date
 - Uses shadcn `Button` for each slot
-- Uses shadcn `Calendar` (date picker) to select the date
+- Uses shadcn `Calendar` (date picker) limited to today + 13 days (14-day window)
 
 ### Key UI Pages
 
 **Dashboard / BookingsView**: @schedule-x calendar + shadcn sidebar filters + shadcn Dialog for details
 
-**ScheduleEditView**: shadcn Form + VeeValidate + Zod for schedule settings; custom `AvailabilityEditor` component for weekly time ranges using shadcn inputs
+**ScheduleEditView**: shadcn Form + VeeValidate + Zod for schedule settings; custom `AvailabilityEditor` component for weekly time ranges using shadcn inputs. Default availability pre-filled as Mon–Fri 09:00–18:00.
 
-**Public SlotPickerView**: Two-column layout — left: shadcn Calendar for date selection, right: time slot grid built with shadcn Buttons + Tailwind
+**Public SlotPickerView**: Two-column layout — left: shadcn Calendar for date selection (capped to 14 days from today), right: time slot grid built with shadcn Buttons + Tailwind.
+
+**Public BookingConfirmView**: Displays full booking details (schedule name, date/time, guest name, email, note, status) after successful booking creation. No "go to home" button — guest sees all info inline.
 
 ### Playwright E2E Tests
 ```
 e2e/
-├── auth.spec.ts              # Register, login, logout
+├── auth.spec.ts              # Login, logout (uses default John Doe account)
 ├── schedule.spec.ts          # Create schedule, set availability
-└── booking-flow.spec.ts      # Full flow: visit public page → pick slot → fill form → confirm
+└── booking-flow.spec.ts      # Full flow: visit public page → pick slot → fill form → confirm page with booking details
 ```
 
 Test strategy:
-- Use `page.goto()` with a seeded test user
+- Use default John Doe account (`john@example.com` / `changeme`) — no registration step needed
 - Assert UI state at each step
-- Test cancellation flow (follow cancel link)
+- Verify conflict rule: book a slot on schedule A, attempt overlapping slot on schedule B → expect 409
 - Run against dev server: `playwright test --project=chromium`
 
 ---
@@ -471,7 +486,7 @@ docker-compose up
 # Run DB migrations
 docker-compose exec api alembic upgrade head
 
-# Seed test data (optional)
+# Seed default John Doe user + sample schedules
 docker-compose exec api python scripts/seed.py
 ```
 
@@ -502,6 +517,7 @@ npx tsp compile .
 up:          docker-compose up -d
 down:        docker-compose down
 migrate:     docker-compose exec api alembic upgrade head
+seed:        docker-compose exec api python scripts/seed.py
 test-api:    docker-compose exec api pytest
 test-web:    cd apps/web && npm run test
 test-e2e:    cd apps/web && npx playwright test
@@ -534,22 +550,28 @@ Branch: `dev/create-backend-init`
 ### Phase 1 — Auth ✅ (merged)
 Branch: `dev/phase-1`
 - Backend: User model, JWT auth (register / login / logout / me), bcrypt password hashing, tests
-- Frontend: Login & Register views (VeeValidate + Zod), auth Pinia store, router navigation guard
+- Frontend: Login view (VeeValidate + Zod), auth Pinia store, router navigation guard
+- Seed script: `scripts/seed.py` creates default John Doe user (`john@example.com` / `changeme` / slug `john`)
 
 ### Phase 2 — Schedules ✅ (merged)
 Branch: `dev/phase-2`
 - Backend: Schedule + Slot models, CRUD routes, slot generation service (`regenerate_slots`), migration
+- Default availability pre-filled: Mon–Fri 09:00–18:00 when `availability` is not provided
+- Slot generation window: **14 days** from today
 - Frontend: schedules Pinia store, `ScheduleCard` + `ScheduleForm` components, `AppLayout` with nav, dashboard routing
 - UI: indigo primary color, globally increased font/icon sizes for better readability on mobile
 
 ### Phase 3 — Public Booking Flow ✅ (merged)
 Branch: `dev/phase-3`
-- Backend: public routes (`GET /public/{slug}`, slots by date, `POST bookings`), Booking model + service, email notifications
-- Frontend: `PublicProfileView`, `SlotPickerView`, `BookingFormView`, `BookingConfirmView`; public router layout
+- Backend: public routes (`GET /public/{slug}`, slots by date, `POST bookings`), Booking model + service
+- **Conflict rule implemented:** booking creation checks for overlapping confirmed bookings across all schedules of the same host. Returns 409 on conflict.
+- Booking created with status `pending`; API returns full booking object in response
+- Frontend: `PublicProfileView`, `SlotPickerView`, `BookingFormView`; `BookingConfirmView` shows full booking details (no "go home" button)
+- Public router layout; slot calendar capped to 14-day window
 
 ### Phase 4 — Bookings Dashboard ✅ (merged)
 Branch: `dev/phase-4`
-- Backend: booking management routes (list, confirm, cancel, token-based guest actions)
+- Backend: booking management routes (list, confirm, cancel, token-based guest cancel)
 - Frontend: `BookingsView` with `@schedule-x/vue` calendar, `BookingCard`, `BookingDialog`, status badges
 - E2E: Playwright spec `booking-dashboard.spec.ts` — list bookings, confirm/cancel actions, calendar view
 
@@ -562,6 +584,13 @@ Branch: `dev/phase-5`
 
 ## Notes for Claude
 
+- **Default user:** A seed script (`scripts/seed.py`) must create the John Doe default account on first run. E2E tests use this account — do not require manual registration.
+- **Auth kept:** JWT auth and logout are fully functional. Registration page may exist but is not linked from the public UI — hosts register via `/auth/register` directly if needed.
+- **Default availability:** When creating a schedule without specifying `availability`, default to Mon–Fri 09:00–18:00. The `AvailabilityEditor` in the frontend should pre-fill this default.
+- **14-day slot window:** `slot_generation_days = 14` in config. The guest calendar must be capped to today + 13 days.
+- **Cross-schedule conflict check:** When creating a booking, verify that no confirmed booking across **any schedule belonging to the same host** overlaps the requested time window (start_at / end_at of the chosen slot). Return 409 on conflict. This applies even if the conflicting booking is on a different schedule/event type.
+- **Booking flow — no email confirmation:** Booking is created as `pending`. The API returns the full booking object. The frontend `BookingConfirmView` renders the booking details directly. Do not send a confirmation email or require a guest to click any link. The host confirms from the dashboard.
+- **BookingConfirmView:** Show schedule name, date, time, guest name, email, note, and status. No "go to home" / "back to main" button.
 - **UI mockups**: When provided, use them as the source of truth for layout, component placement, and user flow. Implement pixel-accurate layouts using Tailwind utilities.
 - **API contract first**: Always update TypeSpec definitions before implementing backend routes or frontend API calls. Regenerate types after any contract change.
 - **shadcn-vue**: Components are copied into `src/components/ui/` via CLI (`npx shadcn-vue@latest add <component>`). Do not edit generated files directly — extend via wrapper components.
