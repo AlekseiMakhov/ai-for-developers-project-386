@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import Button from '@/components/ui/button/Button.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
+const toast = useToast()
+
+onMounted(() => {
+  if (!authStore.user) authStore.fetchMe()
+})
 </script>
 
 <template>
@@ -64,4 +71,27 @@ const authStore = useAuthStore()
       <RouterView />
     </main>
   </div>
+
+  <!-- Global toast -->
+  <Transition name="toast">
+    <div
+      v-if="toast.message.value"
+      class="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-muted/90 backdrop-blur-sm text-muted-foreground text-sm rounded-lg px-5 py-3 shadow-md min-w-64 max-w-sm"
+    >
+      <p class="font-medium">{{ toast.message.value }}</p>
+      <p v-if="toast.detail.value" class="text-xs opacity-70 mt-1 break-all">{{ toast.detail.value }}</p>
+    </div>
+  </Transition>
 </template>
+
+<style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-8px);
+}
+</style>

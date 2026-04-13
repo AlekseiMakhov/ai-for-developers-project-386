@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Schedule } from '@/types'
 import Button from '@/components/ui/button/Button.vue'
+import { useToast } from '@/composables/useToast'
 
 const props = defineProps<{
   schedule: Schedule
@@ -13,15 +14,21 @@ const emit = defineEmits<{
   toggle: []
 }>()
 
-const publicUrl = `${window.location.origin}/${props.userSlug}/${props.schedule.slug}`
+const publicUrl = `${window.location.origin}/book/${props.userSlug}/schedules/${props.schedule.id}/slots`
+const toast = useToast()
 
 function copyLink() {
   navigator.clipboard.writeText(publicUrl)
+  toast.show('Ссылка скопирована', publicUrl)
+}
+
+function openPublicPage() {
+  window.open(publicUrl, '_blank')
 }
 </script>
 
 <template>
-  <div class="bg-card border border-border rounded-lg p-5 sm:p-5 flex flex-col gap-4">
+  <div class="relative bg-card border border-border rounded-lg p-5 sm:p-5 flex flex-col gap-4">
     <!-- Header -->
     <div class="flex items-start justify-between gap-2">
       <div class="flex items-center gap-3 min-w-0">
@@ -66,7 +73,7 @@ function copyLink() {
         </svg>
         Копировать
       </Button>
-      <Button variant="ghost" size="sm" class="gap-2 text-sm h-9 px-3" :as="'a'" :href="publicUrl" target="_blank">
+      <Button variant="ghost" size="sm" class="gap-2 text-sm h-9 px-3" @click="openPublicPage">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
         </svg>
