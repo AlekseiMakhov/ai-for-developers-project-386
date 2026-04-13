@@ -7,8 +7,12 @@ export function getPublicProfile(slug: string): Promise<PublicProfile> {
   return request<PublicProfile>(`/public/${slug}`)
 }
 
-export function getAvailableSlots(slug: string, scheduleId: string, date: string): Promise<Slot[]> {
+export function getSlotsForDate(slug: string, scheduleId: string, date: string): Promise<Slot[]> {
   return request<Slot[]>(`/public/${slug}/schedules/${scheduleId}/slots?date=${date}`)
+}
+
+export function getAvailableDates(slug: string, scheduleId: string): Promise<string[]> {
+  return request<string[]>(`/public/${slug}/schedules/${scheduleId}/available-dates`)
 }
 
 export function createBooking(

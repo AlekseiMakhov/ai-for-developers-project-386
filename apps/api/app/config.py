@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     frontend_url: str = "http://localhost:5173"
-    slot_generation_days: int = 60
+    slot_generation_days: int = 14
 
     class Config:
         env_file = ".env"

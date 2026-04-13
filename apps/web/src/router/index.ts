@@ -65,14 +65,7 @@ const router = createRouter({
       ],
     },
 
-    // Token-based guest actions (from email links)
-    {
-      path: '/bookings/confirm/:token',
-      name: 'booking-confirm-token',
-      component: () => import('@/views/public/BookingConfirmView.vue'),
-      meta: { public: true },
-      props: (route) => ({ confirmToken: route.params.token }),
-    },
+    // Token-based guest cancel (via link)
     {
       path: '/bookings/cancel/:token',
       name: 'booking-cancel-token',

@@ -17,6 +17,30 @@ def _fmt_slot(slot: Slot) -> str:
     return slot.start_at.astimezone(timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
 
 
+async def _check_cross_schedule_conflict(
+    db: AsyncSession,
+    host_user_id: str,
+    slot: Slot,
+) -> None:
+    """Raise 409 if any non-cancelled booking across all host schedules overlaps this slot."""
+    conflict_result = await db.execute(
+        select(Booking)
+        .join(Slot, Slot.id == Booking.slot_id)
+        .join(Schedule, Schedule.id == Booking.schedule_id)
+        .where(
+            Schedule.user_id == host_user_id,
+            Booking.status.in_(["pending", "confirmed"]),
+            Slot.start_at < slot.end_at,
+            Slot.end_at > slot.start_at,
+        )
+    )
+    if conflict_result.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This time is already booked on another schedule",
+        )
+
+
 async def create_booking(
     db: AsyncSession,
     schedule: Schedule,
@@ -37,6 +61,9 @@ async def create_booking(
             status_code=status.HTTP_409_CONFLICT,
             detail="Slot not available",
         )
+
+    # Cross-schedule conflict check: no two bookings at the same time, even on different schedules
+    await _check_cross_schedule_conflict(db, schedule.user_id, slot)
 
     confirmation_token = str(uuid.uuid4())
     cancel_token = str(uuid.uuid4())
@@ -59,22 +86,6 @@ async def create_booking(
 
     await db.commit()
     await db.refresh(booking)
-
-    # Fetch host user for email
-    host_result = await db.execute(select(User).where(User.id == schedule.user_id))
-    host = host_result.scalar_one_or_none()
-
-    confirmation_link = f"{frontend_url}/bookings/confirm/{confirmation_token}"
-    cancel_link = f"{frontend_url}/bookings/cancel/{cancel_token}"
-
-    email_service.send_booking_confirmation(
-        guest_email=booking.guest_email,
-        guest_name=booking.guest_name,
-        schedule_name=schedule.name,
-        slot_start=_fmt_slot(slot),
-        confirmation_link=confirmation_link,
-        cancel_link=cancel_link,
-    )
 
     return booking
 

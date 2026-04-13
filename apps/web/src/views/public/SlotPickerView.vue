@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/booking'
 import Button from '@/components/ui/button/Button.vue'
@@ -14,6 +14,12 @@ const scheduleId = route.params.scheduleId as string
 
 // Calendar state
 const today = new Date()
+
+// Last selectable date: today + 13 (= 14 days total)
+const windowEndDate = new Date(today)
+windowEndDate.setDate(windowEndDate.getDate() + 13)
+const windowEndIso = windowEndDate.toISOString().slice(0, 10)
+
 const currentYear = ref(today.getFullYear())
 const currentMonth = ref(today.getMonth()) // 0-indexed
 
@@ -25,45 +31,87 @@ const schedule = computed(() =>
 )
 
 onMounted(async () => {
-  // Load profile if not already in store
   if (!store.profile) {
     await store.fetchProfile(slug)
   }
+  // Pre-fetch which dates have available slots for calendar coloring
+  await store.fetchAvailableDates(slug, scheduleId)
 })
 
 // Calendar helpers
 const calendarDays = computed(() => {
   const year = currentYear.value
   const month = currentMonth.value
-  const firstDay = new Date(year, month, 1).getDay() // 0=Sun
+  const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-  // Shift so week starts on Monday (0=Mon)
+  // Shift so week starts on Monday
   const startOffset = (firstDay + 6) % 7
-  const cells: Array<{ date: Date | null; iso: string | null; isPast: boolean }> = []
+
+  interface Cell {
+    date: Date | null
+    iso: string | null
+    state: 'empty' | 'past' | 'unavailable' | 'no-slots' | 'has-slots' | 'beyond-window'
+  }
+
+  const cells: Cell[] = []
 
   for (let i = 0; i < startOffset; i++) {
-    cells.push({ date: null, iso: null, isPast: false })
+    cells.push({ date: null, iso: null, state: 'empty' })
   }
+
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d)
     const iso = date.toISOString().slice(0, 10)
-    const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    cells.push({ date, iso, isPast })
+
+    let state: Cell['state']
+    if (date < todayMidnight) {
+      state = 'past'
+    } else if (iso > windowEndIso) {
+      state = 'beyond-window'
+    } else if (store.availableDates === null) {
+      // Still loading — treat as selectable (neutral)
+      state = 'has-slots'
+    } else if (store.availableDates.includes(iso)) {
+      state = 'has-slots'
+    } else {
+      state = 'no-slots'
+    }
+
+    cells.push({ date, iso, state })
   }
 
   return cells
 })
 
-const monthLabel = computed(() => {
-  return new Date(currentYear.value, currentMonth.value, 1).toLocaleString('ru', {
+const monthLabel = computed(() =>
+  new Date(currentYear.value, currentMonth.value, 1).toLocaleString('ru', {
     month: 'long',
     year: 'numeric',
-  })
+  }),
+)
+
+// Disable prev-month button when the current month is today's month
+const canGoPrev = computed(() => {
+  return (
+    currentYear.value > today.getFullYear() ||
+    (currentYear.value === today.getFullYear() && currentMonth.value > today.getMonth())
+  )
+})
+
+// Disable next-month button when showing the month containing windowEnd
+const canGoNext = computed(() => {
+  return (
+    currentYear.value < windowEndDate.getFullYear() ||
+    (currentYear.value === windowEndDate.getFullYear() &&
+      currentMonth.value < windowEndDate.getMonth())
+  )
 })
 
 function prevMonth() {
+  if (!canGoPrev.value) return
   if (currentMonth.value === 0) {
     currentMonth.value = 11
     currentYear.value--
@@ -73,6 +121,7 @@ function prevMonth() {
 }
 
 function nextMonth() {
+  if (!canGoNext.value) return
   if (currentMonth.value === 11) {
     currentMonth.value = 0
     currentYear.value++
@@ -81,14 +130,14 @@ function nextMonth() {
   }
 }
 
-async function selectDate(iso: string | null) {
-  if (!iso) return
+async function selectDate(iso: string) {
   selectedDateStr.value = iso
   selectedSlot.value = null
   await store.fetchSlots(slug, scheduleId, iso)
 }
 
 function pickSlot(slot: Slot) {
+  if (slot.status !== 'available') return
   selectedSlot.value = slot
   store.selectedSlot = slot
 }
@@ -101,6 +150,11 @@ function proceed() {
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })
 }
+
+// Available slots for the selected date (for "continue" button gating)
+const availableSlotsForDate = computed(() =>
+  store.dateSlots.filter((s) => s.status === 'available'),
+)
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 </script>
@@ -127,9 +181,12 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <!-- Calendar -->
       <div>
+        <!-- Month navigation -->
         <div class="flex items-center justify-between mb-4">
           <button
-            class="p-1 rounded hover:bg-secondary transition-colors"
+            class="p-1 rounded transition-colors"
+            :class="canGoPrev ? 'hover:bg-secondary text-foreground' : 'text-muted-foreground/30 cursor-not-allowed'"
+            :disabled="!canGoPrev"
             @click="prevMonth"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,13 +195,31 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
           </button>
           <span class="text-base font-medium capitalize">{{ monthLabel }}</span>
           <button
-            class="p-1 rounded hover:bg-secondary transition-colors"
+            class="p-1 rounded transition-colors"
+            :class="canGoNext ? 'hover:bg-secondary text-foreground' : 'text-muted-foreground/30 cursor-not-allowed'"
+            :disabled="!canGoNext"
             @click="nextMonth"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-4 mb-3 text-xs text-muted-foreground">
+          <span class="flex items-center gap-1">
+            <span class="inline-block w-3 h-3 rounded-sm bg-green-200 dark:bg-green-900"></span>
+            Есть слоты
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="inline-block w-3 h-3 rounded-sm bg-red-200 dark:bg-red-900"></span>
+            Нет слотов
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="inline-block w-3 h-3 rounded-sm bg-muted"></span>
+            Недоступно
+          </span>
         </div>
 
         <!-- Weekday headers -->
@@ -160,29 +235,40 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
         <!-- Day cells -->
         <div class="grid grid-cols-7 gap-1">
-          <div
-            v-for="(cell, i) in calendarDays"
-            :key="i"
-          >
+          <div v-for="(cell, i) in calendarDays" :key="i">
+            <!-- Empty padding -->
+            <div v-if="cell.state === 'empty'" />
+
+            <!-- Selectable: has available slots -->
             <button
-              v-if="cell.date && !cell.isPast"
+              v-else-if="cell.state === 'has-slots'"
               :class="[
                 'w-full aspect-square rounded-md text-sm font-medium transition-colors',
                 selectedDateStr === cell.iso
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-secondary text-foreground',
+                  ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1'
+                  : 'bg-green-100 hover:bg-green-200 text-green-900 dark:bg-green-900/40 dark:hover:bg-green-900/60 dark:text-green-200',
               ]"
-              @click="selectDate(cell.iso)"
+              @click="selectDate(cell.iso!)"
             >
-              {{ cell.date.getDate() }}
+              {{ cell.date!.getDate() }}
             </button>
+
+            <!-- In window but no available slots: red, non-interactive -->
             <div
-              v-else-if="cell.date"
-              class="w-full aspect-square rounded-md text-sm text-muted-foreground/40 flex items-center justify-center"
+              v-else-if="cell.state === 'no-slots'"
+              class="w-full aspect-square rounded-md text-sm font-medium bg-red-100 text-red-400 dark:bg-red-900/30 dark:text-red-500 flex items-center justify-center cursor-not-allowed select-none"
+              :title="'Нет свободных слотов'"
             >
-              {{ cell.date.getDate() }}
+              {{ cell.date!.getDate() }}
             </div>
-            <div v-else />
+
+            <!-- Past / beyond 14-day window: grey -->
+            <div
+              v-else
+              class="w-full aspect-square rounded-md text-sm text-muted-foreground/35 flex items-center justify-center select-none"
+            >
+              {{ cell.date!.getDate() }}
+            </div>
           </div>
         </div>
       </div>
@@ -190,25 +276,38 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
       <!-- Slot grid -->
       <div>
         <div v-if="!selectedDateStr" class="text-muted-foreground text-base pt-2">
-          Выберите дату для просмотра свободных слотов
+          Выберите дату для просмотра слотов
         </div>
 
         <div v-else-if="store.isLoading" class="text-muted-foreground text-base">
           Загрузка слотов...
         </div>
 
-        <div v-else-if="store.availableSlots.length === 0" class="text-muted-foreground text-base">
-          Нет свободных слотов на выбранную дату
+        <div v-else-if="store.dateSlots.length === 0" class="text-muted-foreground text-base">
+          Нет слотов на выбранную дату
         </div>
 
         <div v-else>
           <p class="text-sm font-medium text-foreground mb-3">Выберите время</p>
           <div class="grid grid-cols-3 gap-2">
             <Button
-              v-for="slot in store.availableSlots"
+              v-for="slot in store.dateSlots"
               :key="slot.id"
-              :variant="selectedSlot?.id === slot.id ? 'default' : 'outline'"
-              class="text-sm"
+              :disabled="slot.status !== 'available'"
+              :variant="
+                selectedSlot?.id === slot.id
+                  ? 'default'
+                  : slot.status !== 'available'
+                    ? 'ghost'
+                    : 'outline'
+              "
+              :class="[
+                'text-sm',
+                slot.status !== 'available'
+                  ? 'opacity-40 cursor-not-allowed line-through'
+                  : '',
+              ]"
+              :title="slot.status !== 'available' ? 'Занято' : ''"
               @click="pickSlot(slot)"
             >
               {{ formatTime(slot.startAt) }}
@@ -222,6 +321,13 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
           >
             Продолжить
           </Button>
+
+          <p
+            v-else-if="availableSlotsForDate.length === 0"
+            class="text-sm text-muted-foreground mt-3"
+          >
+            Все слоты на этот день уже заняты
+          </p>
         </div>
       </div>
     </div>
