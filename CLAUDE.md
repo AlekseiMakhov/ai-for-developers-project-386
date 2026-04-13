@@ -510,6 +510,55 @@ lint:        cd apps/api && ruff check . && cd ../web && npm run lint
 
 ---
 
+## Development Phases
+
+The project is built **vertically by feature** — each phase delivers a fully working slice (backend + frontend) and is merged to `main` before the next begins.
+
+### Git workflow per phase
+```
+git checkout main && git pull origin main
+git checkout -b dev/phase-N
+# ... implement ...
+git add <files> && git commit -m "feat: ..."
+git push origin dev/phase-N
+# open PR → merge → repeat
+```
+
+### Phase 0 — Infrastructure ✅ (merged)
+Branch: `dev/create-backend-init`
+- Docker Compose (db + api + web)
+- FastAPI skeleton, SQLAlchemy async setup, Alembic
+- Vue 3 + Vite + Tailwind + shadcn-vue scaffold
+- TypeSpec contract fully defined
+
+### Phase 1 — Auth ✅ (merged)
+Branch: `dev/phase-1`
+- Backend: User model, JWT auth (register / login / logout / me), bcrypt password hashing, tests
+- Frontend: Login & Register views (VeeValidate + Zod), auth Pinia store, router navigation guard
+
+### Phase 2 — Schedules ✅ (merged)
+Branch: `dev/phase-2`
+- Backend: Schedule + Slot models, CRUD routes, slot generation service (`regenerate_slots`), migration
+- Frontend: schedules Pinia store, `ScheduleCard` + `ScheduleForm` components, `AppLayout` with nav, dashboard routing
+- UI: indigo primary color, globally increased font/icon sizes for better readability on mobile
+
+### Phase 3 — Public Booking Flow 🚧 (in progress)
+Branch: `dev/phase-3`
+- Backend: public routes (`GET /public/{slug}`, slots by date, `POST bookings`), Booking model + service, email notifications
+- Frontend: `PublicProfileView`, `SlotPickerView`, `BookingFormView`, `BookingConfirmView`; public router layout
+
+### Phase 4 — Bookings Dashboard (planned)
+Branch: `dev/phase-4`
+- Backend: booking management routes (list, confirm, cancel, token-based guest actions)
+- Frontend: `BookingsView` with `@schedule-x/vue` calendar, `BookingCard`, `BookingDialog`, status badges
+
+### Phase 5 — CI/CD (planned)
+Branch: `dev/phase-5`
+- GitHub Actions: CI (lint + tests + e2e) and CD (build Docker images, deploy via SSH)
+- Production `docker-compose.prod.yml` with Nginx reverse proxy
+
+---
+
 ## Notes for Claude
 
 - **UI mockups**: When provided, use them as the source of truth for layout, component placement, and user flow. Implement pixel-accurate layouts using Tailwind utilities.
