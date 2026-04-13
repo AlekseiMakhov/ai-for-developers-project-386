@@ -13,7 +13,7 @@ from app.schemas.schedule import ScheduleResponse
 from app.schemas.slot import SlotResponse
 from app.schemas.user import UserResponse
 from app.services.booking import create_booking
-from app.services.slot import get_available_slots_for_date
+from app.services.slot import get_all_slots_for_date, get_dates_with_available_slots
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -69,20 +69,37 @@ async def get_public_profile(
 
 
 @router.get(
+    "/{slug}/schedules/{schedule_id}/available-dates",
+    response_model=list[str],
+)
+async def get_schedule_available_dates(
+    slug: str,
+    schedule_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return ISO date strings that have at least one available slot in the booking window."""
+    host = await _get_host_by_slug(db, slug)
+    await _get_active_schedule(db, slug, schedule_id, host.id)
+
+    return await get_dates_with_available_slots(db, schedule_id, host.id)
+
+
+@router.get(
     "/{slug}/schedules/{schedule_id}/slots",
     response_model=list[SlotResponse],
     response_model_by_alias=True,
 )
-async def get_available_slots(
+async def get_all_slots(
     slug: str,
     schedule_id: str,
     date: date = Query(..., description="Date in YYYY-MM-DD format"),
     db: AsyncSession = Depends(get_db),
 ):
+    """Return all slots for a date (available, booked, blocked) so the UI can render status."""
     host = await _get_host_by_slug(db, slug)
     await _get_active_schedule(db, slug, schedule_id, host.id)
 
-    slots = await get_available_slots_for_date(db, schedule_id, date)
+    slots = await get_all_slots_for_date(db, schedule_id, date, host.id)
     return slots
 
 
