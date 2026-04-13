@@ -26,8 +26,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = null
     try {
-      const { access_token } = await authApi.register(payload)
-      setToken(access_token)
+      const { accessToken } = await authApi.register(payload)
+      setToken(accessToken)
       await fetchMe()
       router.push('/dashboard')
     } catch (e) {
@@ -42,8 +42,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = null
     try {
-      const { access_token } = await authApi.login(payload)
-      setToken(access_token)
+      const { accessToken } = await authApi.login(payload)
+      setToken(accessToken)
       await fetchMe()
       router.push('/dashboard')
     } catch (e) {

@@ -58,7 +58,7 @@ const onSubmit = handleSubmit(async (values) => {
               type="email"
               placeholder="you@example.com"
             />
-            <p v-if="errors.email" class="text-sm text-destructive">{{ errors.email }}</p>
+            <p v-if="errors.email" class="text-base text-destructive">{{ errors.email }}</p>
           </div>
 
           <div class="space-y-1.5">
@@ -70,17 +70,17 @@ const onSubmit = handleSubmit(async (values) => {
               type="password"
               placeholder="••••••••"
             />
-            <p v-if="errors.password" class="text-sm text-destructive">{{ errors.password }}</p>
+            <p v-if="errors.password" class="text-base text-destructive">{{ errors.password }}</p>
           </div>
 
-          <p v-if="serverError" class="text-sm text-destructive">{{ serverError }}</p>
+          <p v-if="serverError" class="text-base text-destructive">{{ serverError }}</p>
         </CardContent>
 
         <CardFooter class="flex flex-col gap-3">
           <Button type="submit" class="w-full" :disabled="authStore.isLoading">
             {{ authStore.isLoading ? 'Вход...' : 'Войти' }}
           </Button>
-          <p class="text-sm text-muted-foreground text-center">
+          <p class="text-base text-muted-foreground text-center">
             Нет аккаунта?
             <RouterLink to="/register" class="text-primary underline-offset-4 hover:underline">
               Зарегистрироваться
