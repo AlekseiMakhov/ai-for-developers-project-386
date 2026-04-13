@@ -542,15 +542,16 @@ Branch: `dev/phase-2`
 - Frontend: schedules Pinia store, `ScheduleCard` + `ScheduleForm` components, `AppLayout` with nav, dashboard routing
 - UI: indigo primary color, globally increased font/icon sizes for better readability on mobile
 
-### Phase 3 — Public Booking Flow 🚧 (in progress)
+### Phase 3 — Public Booking Flow ✅ (merged)
 Branch: `dev/phase-3`
 - Backend: public routes (`GET /public/{slug}`, slots by date, `POST bookings`), Booking model + service, email notifications
 - Frontend: `PublicProfileView`, `SlotPickerView`, `BookingFormView`, `BookingConfirmView`; public router layout
 
-### Phase 4 — Bookings Dashboard (planned)
+### Phase 4 — Bookings Dashboard 🚧 (in progress)
 Branch: `dev/phase-4`
 - Backend: booking management routes (list, confirm, cancel, token-based guest actions)
 - Frontend: `BookingsView` with `@schedule-x/vue` calendar, `BookingCard`, `BookingDialog`, status badges
+- E2E: Playwright spec `booking-dashboard.spec.ts` — list bookings, confirm/cancel actions, calendar view
 
 ### Phase 5 — CI/CD (planned)
 Branch: `dev/phase-5`

@@ -51,6 +51,18 @@ export const useBookingStore = defineStore('booking', () => {
     }
   }
 
+  async function confirmBooking(id: string) {
+    const updated = await bookingsApi.hostConfirmBooking(id)
+    const idx = bookings.value.findIndex((b) => b.id === id)
+    if (idx !== -1) bookings.value[idx] = { ...bookings.value[idx], ...updated }
+  }
+
+  async function cancelBooking(id: string) {
+    const updated = await bookingsApi.hostCancelBooking(id)
+    const idx = bookings.value.findIndex((b) => b.id === id)
+    if (idx !== -1) bookings.value[idx] = { ...bookings.value[idx], ...updated }
+  }
+
   function resetFlow() {
     profile.value = null
     selectedScheduleId.value = null
@@ -73,6 +85,8 @@ export const useBookingStore = defineStore('booking', () => {
     fetchSlots,
     submitBooking,
     fetchBookings,
+    confirmBooking,
+    cancelBooking,
     resetFlow,
   }
 })

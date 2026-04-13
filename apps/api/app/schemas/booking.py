@@ -24,6 +24,9 @@ class BookingResponse(CamelModel):
     confirmation_token: str
     cancel_token: str
     created_at: datetime
+    slot_start_at: datetime | None = None
+    slot_end_at: datetime | None = None
+    schedule_name: str | None = None
 
     model_config = ConfigDict(
         alias_generator=to_camel,

@@ -106,6 +106,9 @@ export interface Booking {
   confirmationToken: string;
   cancelToken: string;
   createdAt: string;
+  slotStartAt?: string;
+  slotEndAt?: string;
+  scheduleName?: string;
 }
 
 export interface BookingCreate {

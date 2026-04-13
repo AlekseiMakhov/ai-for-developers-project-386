@@ -6,6 +6,7 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.booking import Booking
 from app.models.schedule import Schedule
+from app.models.slot import Slot
 from app.models.user import User
 from app.schemas.booking import BookingResponse
 from app.services.booking import cancel_booking, confirm_booking
@@ -28,11 +29,27 @@ async def list_bookings(
         return []
 
     result = await db.execute(
-        select(Booking)
+        select(
+            Booking.id,
+            Booking.schedule_id,
+            Booking.slot_id,
+            Booking.guest_name,
+            Booking.guest_email,
+            Booking.guest_note,
+            Booking.status,
+            Booking.confirmation_token,
+            Booking.cancel_token,
+            Booking.created_at,
+            Slot.start_at.label("slot_start_at"),
+            Slot.end_at.label("slot_end_at"),
+            Schedule.name.label("schedule_name"),
+        )
+        .join(Slot, Slot.id == Booking.slot_id)
+        .join(Schedule, Schedule.id == Booking.schedule_id)
         .where(Booking.schedule_id.in_(schedule_ids))
         .order_by(Booking.created_at.desc())
     )
-    return result.scalars().all()
+    return [BookingResponse.model_validate(dict(row)) for row in result.mappings().all()]
 
 
 @router.get("/{booking_id}", response_model=BookingResponse, response_model_by_alias=True)
@@ -41,8 +58,30 @@ async def get_booking(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    booking = await _get_own_booking(db, booking_id, current_user.id)
-    return booking
+    result = await db.execute(
+        select(
+            Booking.id,
+            Booking.schedule_id,
+            Booking.slot_id,
+            Booking.guest_name,
+            Booking.guest_email,
+            Booking.guest_note,
+            Booking.status,
+            Booking.confirmation_token,
+            Booking.cancel_token,
+            Booking.created_at,
+            Slot.start_at.label("slot_start_at"),
+            Slot.end_at.label("slot_end_at"),
+            Schedule.name.label("schedule_name"),
+        )
+        .join(Slot, Slot.id == Booking.slot_id)
+        .join(Schedule, Schedule.id == Booking.schedule_id)
+        .where(Booking.id == booking_id, Schedule.user_id == current_user.id)
+    )
+    row = result.mappings().one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+    return BookingResponse.model_validate(dict(row))
 
 
 @router.patch("/{booking_id}/confirm", response_model=BookingResponse, response_model_by_alias=True)
