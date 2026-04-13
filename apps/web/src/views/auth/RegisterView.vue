@@ -60,7 +60,7 @@ const onSubmit = handleSubmit(async (values) => {
           <div class="space-y-1.5">
             <Label for="name">Имя</Label>
             <Input id="name" v-model="name" v-bind="nameAttrs" placeholder="Иван Иванов" />
-            <p v-if="errors.name" class="text-sm text-destructive">{{ errors.name }}</p>
+            <p v-if="errors.name" class="text-base text-destructive">{{ errors.name }}</p>
           </div>
 
           <div class="space-y-1.5">
@@ -72,7 +72,7 @@ const onSubmit = handleSubmit(async (values) => {
               type="email"
               placeholder="you@example.com"
             />
-            <p v-if="errors.email" class="text-sm text-destructive">{{ errors.email }}</p>
+            <p v-if="errors.email" class="text-base text-destructive">{{ errors.email }}</p>
           </div>
 
           <div class="space-y-1.5">
@@ -84,26 +84,26 @@ const onSubmit = handleSubmit(async (values) => {
               type="password"
               placeholder="••••••••"
             />
-            <p v-if="errors.password" class="text-sm text-destructive">{{ errors.password }}</p>
+            <p v-if="errors.password" class="text-base text-destructive">{{ errors.password }}</p>
           </div>
 
           <div class="space-y-1.5">
             <Label for="slug">Ваш URL (slug)</Label>
             <div class="flex items-center gap-1">
-              <span class="text-sm text-muted-foreground whitespace-nowrap">slotbook.app/</span>
+              <span class="text-base text-muted-foreground whitespace-nowrap">slotbook.app/</span>
               <Input id="slug" v-model="slug" v-bind="slugAttrs" placeholder="ivan-ivanov" />
             </div>
-            <p v-if="errors.slug" class="text-sm text-destructive">{{ errors.slug }}</p>
+            <p v-if="errors.slug" class="text-base text-destructive">{{ errors.slug }}</p>
           </div>
 
-          <p v-if="serverError" class="text-sm text-destructive">{{ serverError }}</p>
+          <p v-if="serverError" class="text-base text-destructive">{{ serverError }}</p>
         </CardContent>
 
         <CardFooter class="flex flex-col gap-3">
           <Button type="submit" class="w-full" :disabled="authStore.isLoading">
             {{ authStore.isLoading ? 'Создание...' : 'Создать аккаунт' }}
           </Button>
-          <p class="text-sm text-muted-foreground text-center">
+          <p class="text-base text-muted-foreground text-center">
             Уже есть аккаунт?
             <RouterLink to="/login" class="text-primary underline-offset-4 hover:underline">
               Войти

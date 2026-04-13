@@ -4,6 +4,7 @@ import { getToken } from '@/api/client'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // Auth
     {
       path: '/login',
       name: 'login',
@@ -16,12 +17,28 @@ const router = createRouter({
       component: () => import('@/views/auth/RegisterView.vue'),
       meta: { public: true },
     },
-    // Dashboard routes — added in iteration 2
-    // Public booking routes — added in iteration 3
 
-    // Catch-all redirect
-    { path: '/', redirect: '/login' },
-    { path: '/:pathMatch(.*)*', redirect: '/login' },
+    // Dashboard
+    {
+      path: '/dashboard',
+      component: () => import('@/components/layout/AppLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'dashboard',
+          component: () => import('@/views/dashboard/SchedulesView.vue'),
+        },
+        {
+          path: '/bookings',
+          name: 'bookings',
+          component: () => import('@/views/dashboard/BookingsView.vue'),
+        },
+      ],
+    },
+
+    // Public booking routes — added in iteration 3
+    { path: '/', redirect: '/dashboard' },
+    { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
   ],
 })
 
