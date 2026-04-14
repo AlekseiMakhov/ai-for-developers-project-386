@@ -47,6 +47,8 @@ test.describe('Bookings dashboard', () => {
     await page.click('text=Бронирования')
     await expect(page).toHaveURL('/bookings')
 
+    // Default filter is "confirmed"; switch to "pending" to see the new booking
+    await page.click('text=Ожидают')
     await expect(page.locator('[data-testid="booking-card"]').first()).toBeVisible({ timeout: 5000 })
     await expect(page.locator('text=Иван Тест')).toBeVisible()
     await expect(page.locator('text=ivan@example.com')).toBeVisible()
@@ -69,6 +71,7 @@ test.describe('Bookings dashboard', () => {
 
     await loginUser(page, user.email, user.password)
     await page.click('text=Бронирования')
+    await page.click('text=Ожидают')
 
     await page.locator('[data-testid="booking-card"]').first().click()
     const dialog = page.locator('[data-testid="booking-dialog"]')
@@ -83,11 +86,15 @@ test.describe('Bookings dashboard', () => {
 
     await loginUser(page, user.email, user.password)
     await page.click('text=Бронирования')
+    await page.click('text=Ожидают')
 
     await page.locator('[data-testid="booking-card"]').first().click()
     await page.locator('[data-testid="confirm-booking-btn"]').click()
 
-    await expect(page.locator('[data-testid="booking-dialog"]').locator('text=Подтверждено')).toBeVisible({ timeout: 5000 })
+    // Dialog closes after confirm; booking moves to "Подтверждены" filter
+    await expect(page.locator('[data-testid="booking-dialog"]')).not.toBeVisible({ timeout: 5000 })
+    await page.click('text=Подтверждены')
+    await expect(page.locator('[data-testid="booking-card"]').first()).toBeVisible({ timeout: 5000 })
   })
 
   test('host can cancel a pending booking', async ({ page, request }) => {
@@ -97,11 +104,17 @@ test.describe('Bookings dashboard', () => {
 
     await loginUser(page, user.email, user.password)
     await page.click('text=Бронирования')
+    await page.click('text=Ожидают')
 
     await page.locator('[data-testid="booking-card"]').first().click()
+    // First click opens the cancel confirmation dialog
     await page.locator('[data-testid="cancel-booking-btn"]').click()
+    // Confirm cancellation in the second dialog
+    await page.locator('text=Отменить бронирование').last().click()
 
-    await expect(page.locator('[data-testid="booking-dialog"]').locator('text=Отменено')).toBeVisible({ timeout: 5000 })
+    // Booking moves to "Отменены" filter
+    await page.click('text=Отменены')
+    await expect(page.locator('[data-testid="booking-card"]').first()).toBeVisible({ timeout: 5000 })
   })
 
   test('status filter works', async ({ page, request }) => {
@@ -112,12 +125,19 @@ test.describe('Bookings dashboard', () => {
     await loginUser(page, user.email, user.password)
     await page.click('text=Бронирования')
 
-    // Click "Подтверждены" filter — should show empty state
-    await page.click('text=Подтверждены')
-    await expect(page.locator('[data-testid="empty-bookings"]')).toBeVisible({ timeout: 3000 })
+    // Default filter is "confirmed" — pending booking is hidden, empty state shown
+    await expect(page.locator('[data-testid="empty-bookings"]')).toBeVisible({ timeout: 5000 })
 
-    // Switch back to "Ожидают" — booking should appear
+    // Switch to "Ожидают" — pending booking should appear
     await page.click('text=Ожидают')
     await expect(page.locator('[data-testid="booking-card"]').first()).toBeVisible({ timeout: 3000 })
+
+    // Switch to "Завершенные" — no past bookings, empty state
+    await page.click('text=Завершенные')
+    await expect(page.locator('[data-testid="empty-bookings"]')).toBeVisible({ timeout: 3000 })
+
+    // Switch to "Отменены" — no cancelled bookings, empty state
+    await page.click('text=Отменены')
+    await expect(page.locator('[data-testid="empty-bookings"]')).toBeVisible({ timeout: 3000 })
   })
 })

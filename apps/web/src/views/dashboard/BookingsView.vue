@@ -4,6 +4,8 @@ import { useBookingStore } from '@/stores/booking'
 import type { Booking, BookingStatus } from '@/types'
 import BookingCard from '@/components/booking/BookingCard.vue'
 import BookingDialog from '@/components/booking/BookingDialog.vue'
+import Dialog from '@/components/ui/dialog/Dialog.vue'
+import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 
 const bookingStore = useBookingStore()
@@ -11,19 +13,19 @@ const toast = useToast()
 
 const selectedBooking = ref<Booking | null>(null)
 const dialogOpen = ref(false)
-const activeFilter = ref<BookingStatus | 'all'>('all')
+const cancellingBooking = ref<Booking | null>(null)
+const activeFilter = ref<BookingStatus>('confirmed')
 
-const filters: { label: string; value: BookingStatus | 'all' }[] = [
-  { label: 'Все', value: 'all' },
+const filters: { label: string; value: BookingStatus }[] = [
   { label: 'Ожидают', value: 'pending' },
   { label: 'Подтверждены', value: 'confirmed' },
+  { label: 'Завершенные', value: 'past' },
   { label: 'Отменены', value: 'cancelled' },
 ]
 
-const filteredBookings = computed(() => {
-  if (activeFilter.value === 'all') return bookingStore.bookings
-  return bookingStore.bookings.filter((b) => b.status === activeFilter.value)
-})
+const filteredBookings = computed(() =>
+  bookingStore.bookings.filter((b) => b.status === activeFilter.value),
+)
 
 onMounted(() => bookingStore.fetchBookings())
 
@@ -35,21 +37,27 @@ function openDialog(booking: Booking) {
 async function onConfirm(id: string) {
   try {
     await bookingStore.confirmBooking(id)
-    // refresh selectedBooking from store
-    selectedBooking.value = bookingStore.bookings.find((b) => b.id === id) ?? null
+    dialogOpen.value = false
     toast.show('Бронирование подтверждено')
   } catch {
     toast.show('Ошибка', 'Не удалось подтвердить бронирование')
   }
 }
 
-async function onCancel(id: string) {
+function onCancel(id: string) {
+  cancellingBooking.value = bookingStore.bookings.find((b) => b.id === id) ?? null
+  dialogOpen.value = false
+}
+
+async function confirmCancel() {
+  if (!cancellingBooking.value) return
   try {
-    await bookingStore.cancelBooking(id)
-    selectedBooking.value = bookingStore.bookings.find((b) => b.id === id) ?? null
+    await bookingStore.cancelBooking(cancellingBooking.value.id)
     toast.show('Бронирование отменено')
   } catch {
     toast.show('Ошибка', 'Не удалось отменить бронирование')
+  } finally {
+    cancellingBooking.value = null
   }
 }
 </script>
@@ -76,13 +84,9 @@ async function onCancel(id: string) {
         @click="activeFilter = f.value"
       >
         {{ f.label }}
-        <span
-          v-if="f.value !== 'all'"
-          class="ml-1 text-xs opacity-60"
-        >
+        <span class="ml-1 text-xs opacity-60">
           {{ bookingStore.bookings.filter((b) => b.status === f.value).length }}
         </span>
-        <span v-else class="ml-1 text-xs opacity-60">{{ bookingStore.bookings.length }}</span>
       </button>
     </div>
 
@@ -99,9 +103,7 @@ async function onCancel(id: string) {
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
       <p class="text-xl font-medium">Нет бронирований</p>
-      <p class="text-base mt-1">
-        {{ activeFilter === 'all' ? 'Поделитесь ссылкой на бронирование, чтобы получить первую запись' : 'Нет бронирований с таким статусом' }}
-      </p>
+      <p class="text-base mt-1">Нет бронирований с таким статусом</p>
     </div>
 
     <!-- Booking list -->
@@ -123,4 +125,23 @@ async function onCancel(id: string) {
     @confirm="onConfirm"
     @cancel="onCancel"
   />
+
+  <!-- Cancel confirmation dialog -->
+  <Dialog
+    :open="!!cancellingBooking"
+    title="Отменить бронирование"
+    @update:open="cancellingBooking = null"
+  >
+    <div class="space-y-4">
+      <p class="text-base text-foreground">
+        Вы уверены, что хотите отменить бронирование
+        <span class="font-medium">«{{ cancellingBooking?.guestName }}»</span>?
+        Это действие нельзя отменить.
+      </p>
+      <div class="flex justify-end gap-2">
+        <Button variant="outline" @click="cancellingBooking = null">Назад</Button>
+        <Button variant="destructive" @click="confirmCancel">Отменить бронирование</Button>
+      </div>
+    </div>
+  </Dialog>
 </template>

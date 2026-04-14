@@ -1,11 +1,12 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import get_current_user
+from app.models.booking import Booking
 from app.models.schedule import Schedule
 from app.models.user import User
 from app.schemas.schedule import ScheduleCreate, ScheduleResponse, ScheduleUpdate
@@ -89,6 +90,17 @@ async def delete_schedule(
     db: AsyncSession = Depends(get_db),
 ):
     schedule = await _get_own_schedule(db, schedule_id, current_user.id)
+
+    booking_count_result = await db.execute(
+        select(func.count()).select_from(Booking).where(Booking.schedule_id == schedule_id)
+    )
+    booking_count = booking_count_result.scalar_one()
+    if booking_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete schedule with existing bookings. Deactivate it instead.",
+        )
+
     await db.delete(schedule)
     await db.commit()
 

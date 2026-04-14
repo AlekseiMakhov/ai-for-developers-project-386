@@ -7,6 +7,7 @@ import "./routes/auth.tsp";
 import "./routes/schedules.tsp";
 import "./routes/slots.tsp";
 import "./routes/bookings.tsp";
+import "./routes/public.tsp";
 
 using TypeSpec.Http;
 

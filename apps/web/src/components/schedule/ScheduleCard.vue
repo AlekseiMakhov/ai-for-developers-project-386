@@ -22,8 +22,22 @@ function copyLink() {
   toast.show('Ссылка скопирована', publicUrl)
 }
 
-function openPublicPage() {
-  window.open(publicUrl, '_blank')
+async function shareLink() {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: props.schedule.name,
+        text: `Запишитесь на ${props.schedule.name}`,
+        url: publicUrl,
+      })
+    } catch {
+      // user cancelled — do nothing
+    }
+  } else {
+    // fallback: copy to clipboard
+    navigator.clipboard.writeText(publicUrl)
+    toast.show('Ссылка скопирована', publicUrl)
+  }
 }
 </script>
 
@@ -75,11 +89,11 @@ function openPublicPage() {
         </svg>
         <span class="hidden lg:inline">Копировать</span>
       </Button>
-      <Button variant="ghost" class="h-11 w-11 p-0 lg:h-9 lg:w-auto lg:px-2.5 gap-1.5 text-sm" @click="openPublicPage">
+      <Button variant="ghost" class="h-11 w-11 p-0 lg:h-9 lg:w-auto lg:px-2.5 gap-1.5 text-sm" @click="shareLink">
         <svg class="w-7 h-7 flex-shrink-0 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
         </svg>
-        <span class="hidden lg:inline">Открыть</span>
+        <span class="hidden lg:inline">Поделиться</span>
       </Button>
       <div class="ml-auto flex gap-1 flex-shrink-0">
         <Button variant="ghost" size="icon" class="w-11 h-11 lg:w-9 lg:h-9" @click="emit('edit')">

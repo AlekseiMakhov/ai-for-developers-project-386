@@ -3,7 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/booking'
 import Button from '@/components/ui/button/Button.vue'
-import type { Slot } from '@/types'
+import { getPublicSchedule } from '@/api/bookings'
+import type { Schedule, Slot } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,13 +13,23 @@ const store = useBookingStore()
 const slug = route.params.slug as string
 const scheduleId = route.params.scheduleId as string
 
+// Holds schedule fetched directly when it's not in the store (inactive schedules aren't returned by the profile endpoint)
+const fetchedSchedule = ref<Schedule | null>(null)
+
 // Calendar state
 const today = new Date()
 
 // Last selectable date: today + 13 (= 14 days total)
 const windowEndDate = new Date(today)
 windowEndDate.setDate(windowEndDate.getDate() + 13)
-const windowEndIso = windowEndDate.toISOString().slice(0, 10)
+// Use local date components to avoid UTC-offset shifting (toISOString returns UTC)
+function toLocalIso(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+const windowEndIso = toLocalIso(windowEndDate)
 
 const currentYear = ref(today.getFullYear())
 const currentMonth = ref(today.getMonth()) // 0-indexed
@@ -27,12 +38,25 @@ const selectedDateStr = ref<string | null>(null)
 const selectedSlot = ref<Slot | null>(null)
 
 const schedule = computed(() =>
-  store.profile?.schedules.find((s) => s.id === scheduleId) ?? null,
+  fetchedSchedule.value ?? store.profile?.schedules.find((s) => s.id === scheduleId) ?? null,
+)
+
+const isScheduleInactive = computed(
+  () => schedule.value !== null && !schedule.value.isActive,
 )
 
 onMounted(async () => {
   if (!store.profile) {
     await store.fetchProfile(slug)
+  }
+  // If schedule is not in the profile (e.g. inactive), fetch it directly so we can show the right state
+  if (!store.profile?.schedules.find((s) => s.id === scheduleId)) {
+    try {
+      fetchedSchedule.value = await getPublicSchedule(slug, scheduleId)
+    } catch {
+      // schedule not found — leave null, template handles it
+    }
+    return
   }
   // Pre-fetch which dates have available slots for calendar coloring
   await store.fetchAvailableDates(slug, scheduleId)
@@ -64,7 +88,7 @@ const calendarDays = computed(() => {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d)
-    const iso = date.toISOString().slice(0, 10)
+    const iso = toLocalIso(date)
 
     let state: Cell['state']
     if (date < todayMidnight) {
@@ -172,13 +196,36 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
       Назад
     </button>
 
+    <!-- Inactive schedule banner -->
+    <div
+      v-if="isScheduleInactive"
+      class="flex flex-col items-center justify-center py-16 gap-4 text-center"
+    >
+      <svg
+        class="w-12 h-12 text-yellow-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+        />
+      </svg>
+      <p class="text-xl font-semibold text-foreground">Запись на событие недоступна</p>
+      <p v-if="schedule" class="text-base text-muted-foreground">{{ schedule.name }}</p>
+    </div>
+
     <!-- Schedule info -->
-    <div class="mb-6" v-if="schedule">
+    <div class="mb-6" v-else-if="schedule">
       <h1 class="text-2xl font-bold text-foreground">{{ schedule.name }}</h1>
       <p class="text-base text-muted-foreground mt-1">{{ schedule.duration }} мин · {{ schedule.timezone }}</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div v-if="!isScheduleInactive" class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <!-- Calendar -->
       <div>
         <!-- Month navigation -->

@@ -6,6 +6,7 @@ import Button from '@/components/ui/button/Button.vue'
 import Dialog from '@/components/ui/dialog/Dialog.vue'
 import ScheduleCard from '@/components/schedule/ScheduleCard.vue'
 import ScheduleForm from '@/components/schedule/ScheduleForm.vue'
+import { ApiError } from '@/api/client'
 import type { Schedule } from '@/types'
 
 const scheduleStore = useScheduleStore()
@@ -14,6 +15,7 @@ const authStore = useAuthStore()
 const showCreateDialog = ref(false)
 const editingSchedule = ref<Schedule | null>(null)
 const deletingSchedule = ref<Schedule | null>(null)
+const blockedSchedule = ref<Schedule | null>(null)
 
 onMounted(() => scheduleStore.fetchAll())
 
@@ -38,8 +40,17 @@ function requestDelete(schedule: Schedule) {
 
 async function confirmDelete() {
   if (!deletingSchedule.value) return
-  await scheduleStore.remove(deletingSchedule.value.id)
-  deletingSchedule.value = null
+  try {
+    await scheduleStore.remove(deletingSchedule.value.id)
+    deletingSchedule.value = null
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 409) {
+      blockedSchedule.value = deletingSchedule.value
+      deletingSchedule.value = null
+    } else {
+      throw err
+    }
+  }
 }
 
 function closeDeleteDialog() {
@@ -126,6 +137,38 @@ function closeDeleteDialog() {
         >
           Удалить
         </Button>
+      </div>
+    </div>
+  </Dialog>
+
+  <!-- Cannot delete: has bookings -->
+  <Dialog
+    :open="!!blockedSchedule"
+    title="Невозможно удалить событие"
+    @update:open="blockedSchedule = null"
+  >
+    <div class="space-y-4">
+      <div class="flex gap-3 items-start">
+        <svg
+          class="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+          />
+        </svg>
+        <p class="text-base text-foreground">
+          Событие <span class="font-medium">«{{ blockedSchedule?.name }}»</span> нельзя удалить —
+          на него есть бронирования. Деактивируйте его, чтобы закрыть запись.
+        </p>
+      </div>
+      <div class="flex justify-end">
+        <Button @click="blockedSchedule = null">Понятно</Button>
       </div>
     </div>
   </Dialog>

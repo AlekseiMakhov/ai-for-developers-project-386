@@ -1,5 +1,6 @@
 import "@typespec/http";
 import "../models/booking.tsp";
+import "../models/schedule.tsp";
 
 using TypeSpec.Http;
 
@@ -39,4 +40,13 @@ interface PublicBookingRoutes {
     @path scheduleId: string,
     @body body: BookingCreate,
   ): Booking;
+}
+
+@route("/public/{slug}/schedules/{scheduleId}")
+interface PublicScheduleRoutes {
+  @get
+  get(
+    @path slug: string,
+    @path scheduleId: string,
+  ): Schedule;
 }
