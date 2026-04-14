@@ -71,8 +71,9 @@ test.describe('Bookings dashboard', () => {
     await page.click('text=Бронирования')
 
     await page.locator('[data-testid="booking-card"]').first().click()
-    await expect(page.locator('text=ivan@example.com')).toBeVisible({ timeout: 3000 })
-    await expect(page.locator('text=Тестовое бронирование')).toBeVisible()
+    const dialog = page.locator('[data-testid="booking-dialog"]')
+    await expect(dialog.locator('text=ivan@example.com')).toBeVisible({ timeout: 3000 })
+    await expect(dialog.locator('text=Тестовое бронирование')).toBeVisible()
   })
 
   test('host can confirm a pending booking', async ({ page, request }) => {
@@ -86,7 +87,7 @@ test.describe('Bookings dashboard', () => {
     await page.locator('[data-testid="booking-card"]').first().click()
     await page.locator('[data-testid="confirm-booking-btn"]').click()
 
-    await expect(page.locator('text=Подтверждено')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="booking-dialog"]').locator('text=Подтверждено')).toBeVisible({ timeout: 5000 })
   })
 
   test('host can cancel a pending booking', async ({ page, request }) => {
@@ -100,7 +101,7 @@ test.describe('Bookings dashboard', () => {
     await page.locator('[data-testid="booking-card"]').first().click()
     await page.locator('[data-testid="cancel-booking-btn"]').click()
 
-    await expect(page.locator('text=Отменено')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="booking-dialog"]').locator('text=Отменено')).toBeVisible({ timeout: 5000 })
   })
 
   test('status filter works', async ({ page, request }) => {

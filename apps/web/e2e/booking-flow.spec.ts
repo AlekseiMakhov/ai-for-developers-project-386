@@ -32,7 +32,7 @@ test.describe('Public booking flow', () => {
     await expect(page.locator('text=Выберите время')).toBeVisible({ timeout: 5000 })
 
     // 4. Pick first available slot
-    const slotButtons = page.locator('.grid button').first()
+    const slotButtons = page.locator('[data-testid="slot-grid"] button:not([disabled])').first()
     await slotButtons.click()
 
     // 5. Click Продолжить

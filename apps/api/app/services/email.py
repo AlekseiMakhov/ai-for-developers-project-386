@@ -40,7 +40,9 @@ def send_booking_confirmation(
     <p>Привет, {guest_name}!</p>
     <p>Вы записались на <strong>{schedule_name}</strong> ({slot_start}).</p>
     <p>Для подтверждения брони нажмите кнопку ниже:</p>
-    <p><a href="{confirmation_link}" style="background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Подтвердить запись</a></p>
+    <p><a href="{confirmation_link}"
+        style="background:#6366f1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;"
+    >Подтвердить запись</a></p>
     <p>Чтобы отменить запись: <a href="{cancel_link}">отменить</a></p>
     """
     _send(guest_email, f"Подтвердите запись: {schedule_name}", body)
@@ -56,7 +58,8 @@ def send_booking_confirmed_to_host(
 ) -> None:
     body = f"""
     <p>Привет, {host_name}!</p>
-    <p><strong>{guest_name}</strong> ({guest_email}) подтвердил запись на <strong>{schedule_name}</strong> ({slot_start}).</p>
+    <p><strong>{guest_name}</strong> ({guest_email}) подтвердил запись
+    на <strong>{schedule_name}</strong> ({slot_start}).</p>
     """
     _send(host_email, f"Новая запись: {guest_name} — {schedule_name}", body)
 

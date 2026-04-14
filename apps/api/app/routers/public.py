@@ -35,7 +35,7 @@ async def _get_active_schedule(db: AsyncSession, slug: str, schedule_id: str, ho
         select(Schedule).where(
             Schedule.id == schedule_id,
             Schedule.user_id == host_id,
-            Schedule.is_active == True,
+            Schedule.is_active,
         )
     )
     schedule = result.scalar_one_or_none()
@@ -54,7 +54,7 @@ async def get_public_profile(
     schedules_result = await db.execute(
         select(Schedule).where(
             Schedule.user_id == host.id,
-            Schedule.is_active == True,
+            Schedule.is_active,
         )
     )
     schedules = list(schedules_result.scalars().all())

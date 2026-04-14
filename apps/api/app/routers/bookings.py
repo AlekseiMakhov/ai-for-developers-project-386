@@ -52,6 +52,22 @@ async def list_bookings(
     return [BookingResponse.model_validate(dict(row)) for row in result.mappings().all()]
 
 
+@router.get("/confirm/{token}", response_model=BookingResponse, response_model_by_alias=True)
+async def guest_confirm_booking(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    return await confirm_booking(db, token)
+
+
+@router.get("/cancel/{token}", response_model=BookingResponse, response_model_by_alias=True)
+async def guest_cancel_booking(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    return await cancel_booking(db, token)
+
+
 @router.get("/{booking_id}", response_model=BookingResponse, response_model_by_alias=True)
 async def get_booking(
     booking_id: str,
@@ -102,22 +118,6 @@ async def host_cancel_booking(
 ):
     booking = await _get_own_booking(db, booking_id, current_user.id)
     return await cancel_booking(db, booking.cancel_token)
-
-
-@router.get("/confirm/{token}", response_model=BookingResponse, response_model_by_alias=True)
-async def guest_confirm_booking(
-    token: str,
-    db: AsyncSession = Depends(get_db),
-):
-    return await confirm_booking(db, token)
-
-
-@router.get("/cancel/{token}", response_model=BookingResponse, response_model_by_alias=True)
-async def guest_cancel_booking(
-    token: str,
-    db: AsyncSession = Depends(get_db),
-):
-    return await cancel_booking(db, token)
 
 
 async def _get_own_booking(db: AsyncSession, booking_id: str, user_id: str) -> Booking:

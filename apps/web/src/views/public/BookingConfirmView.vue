@@ -1,22 +1,32 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useBookingStore } from '@/stores/booking'
-import { guestCancelBooking } from '@/api/bookings'
+import { guestCancelBooking, guestConfirmBooking } from '@/api/bookings'
 import { ApiError } from '@/api/client'
 import type { Booking } from '@/types'
 
 const props = defineProps<{
   cancelToken?: string
+  confirmToken?: string
 }>()
 
 const store = useBookingStore()
 
 const booking = ref<Booking | null>(store.createdBooking)
-const pageStatus = ref<'created' | 'loading' | 'cancelled' | 'error'>('created')
+const pageStatus = ref<'created' | 'loading' | 'confirmed' | 'cancelled' | 'error'>('created')
 const errorMsg = ref<string | null>(null)
 
 onMounted(async () => {
-  if (props.cancelToken) {
+  if (props.confirmToken) {
+    pageStatus.value = 'loading'
+    try {
+      booking.value = await guestConfirmBooking(props.confirmToken)
+      pageStatus.value = 'confirmed'
+    } catch (e) {
+      pageStatus.value = 'error'
+      errorMsg.value = e instanceof ApiError ? e.message : 'Ошибка подтверждения'
+    }
+  } else if (props.cancelToken) {
     pageStatus.value = 'loading'
     try {
       booking.value = await guestCancelBooking(props.cancelToken)
@@ -61,7 +71,7 @@ const statusLabel = computed(() => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <h1 class="text-2xl font-bold text-foreground mb-1 text-center">Запись создана!</h1>
+      <h1 class="text-2xl font-bold text-foreground mb-1 text-center">Почти готово!</h1>
       <p class="text-sm text-muted-foreground text-center mb-6">Ожидайте подтверждения от организатора</p>
 
       <div class="rounded-lg border bg-card p-5 space-y-3 text-sm">
@@ -90,6 +100,17 @@ const statusLabel = computed(() => {
           <span class="font-medium">{{ statusLabel }}</span>
         </div>
       </div>
+    </div>
+
+    <!-- Confirmed via token -->
+    <div v-else-if="pageStatus === 'confirmed'" class="text-center">
+      <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-foreground mb-3">Запись подтверждена</h1>
+      <p class="text-base text-muted-foreground">Ваша запись успешно подтверждена.</p>
     </div>
 
     <!-- Cancelled -->

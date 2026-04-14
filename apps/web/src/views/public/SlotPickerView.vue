@@ -289,7 +289,7 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
         <div v-else>
           <p class="text-sm font-medium text-foreground mb-3">Выберите время</p>
-          <div class="grid grid-cols-3 gap-2">
+          <div class="grid grid-cols-3 gap-2" data-testid="slot-grid">
             <Button
               v-for="slot in store.dateSlots"
               :key="slot.id"
