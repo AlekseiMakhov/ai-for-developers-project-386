@@ -29,7 +29,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         <div class="absolute inset-0 bg-black/50" @click="close" />
 
         <!-- Panel -->
-        <div class="relative z-10 bg-background rounded-lg shadow-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div data-testid="booking-dialog" class="relative z-10 bg-background rounded-lg shadow-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
           <!-- Header -->
           <div class="flex items-center justify-between px-6 pt-6 pb-4">
             <h2 v-if="props.title" class="text-xl font-semibold">{{ props.title }}</h2>
