@@ -1,7 +1,6 @@
 import pytest
 from httpx import AsyncClient
 
-
 USER_PAYLOAD = {
     "email": "test@example.com",
     "name": "Test User",
