@@ -60,7 +60,7 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Type check (vue-tsc)
         run: npm run type-check
@@ -90,7 +90,7 @@ jobs:
 
       - name: Install Node dependencies
         working-directory: apps/web
-        run: npm ci
+        run: npm install
 
       - name: Install Playwright browsers
         working-directory: apps/web
