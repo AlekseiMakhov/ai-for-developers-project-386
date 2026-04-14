@@ -11,7 +11,9 @@ class Slot(Base):
     __tablename__ = "slots"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    schedule_id: Mapped[str] = mapped_column(String, ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False, index=True)
+    schedule_id: Mapped[str] = mapped_column(
+        String, ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     start_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(

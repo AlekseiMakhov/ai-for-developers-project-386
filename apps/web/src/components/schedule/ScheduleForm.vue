@@ -26,7 +26,8 @@ function defaultState() {
   if (props.schedule) {
     const av = props.schedule.availability
     const activeDays = DAYS.filter((d) => (av as any)[d.key]?.length > 0).map((d) => d.key)
-    const firstRange = Object.values(av as any).find((v: any) => v?.length > 0)?.[0] as any
+    const foundRanges = Object.values(av as any).find((v: any) => v?.length > 0) as any[] | undefined
+    const firstRange = foundRanges ? foundRanges[0] : undefined
     return {
       name: props.schedule.name,
       slug: props.schedule.slug,

@@ -11,8 +11,12 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    schedule_id: Mapped[str] = mapped_column(String, ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False, index=True)
-    slot_id: Mapped[str] = mapped_column(String, ForeignKey("slots.id", ondelete="CASCADE"), nullable=False, unique=True)
+    schedule_id: Mapped[str] = mapped_column(
+        String, ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    slot_id: Mapped[str] = mapped_column(
+        String, ForeignKey("slots.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
     guest_name: Mapped[str] = mapped_column(String, nullable=False)
     guest_email: Mapped[str] = mapped_column(String, nullable=False)
     guest_note: Mapped[str | None] = mapped_column(String, nullable=True)
