@@ -68,7 +68,7 @@ const statusLabel = computed(() => {
     <div v-else-if="pageStatus === 'created'">
       <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
         </svg>
       </div>
       <h1 class="text-2xl font-bold text-foreground mb-1 text-center">Почти готово!</h1>
@@ -106,7 +106,7 @@ const statusLabel = computed(() => {
     <div v-else-if="pageStatus === 'confirmed'" class="text-center">
       <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
         </svg>
       </div>
       <h1 class="text-2xl font-bold text-foreground mb-3">Запись подтверждена</h1>
@@ -117,7 +117,7 @@ const statusLabel = computed(() => {
     <div v-else-if="pageStatus === 'cancelled'" class="text-center">
       <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
         <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </div>
       <h1 class="text-2xl font-bold text-foreground mb-3">Запись отменена</h1>
@@ -128,7 +128,7 @@ const statusLabel = computed(() => {
     <div v-else-if="pageStatus === 'error'" class="text-center">
       <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
         <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 4a8 8 0 100 16A8 8 0 0012 4z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01M12 4a8 8 0 100 16A8 8 0 0012 4z" />
         </svg>
       </div>
       <h1 class="text-2xl font-bold text-foreground mb-3">Ошибка</h1>

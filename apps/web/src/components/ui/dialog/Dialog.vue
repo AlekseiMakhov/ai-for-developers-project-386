@@ -4,6 +4,7 @@ import { onMounted, onUnmounted } from 'vue'
 interface Props {
   open: boolean
   title?: string
+  size?: 'md' | 'lg'
 }
 
 const props = defineProps<Props>()
@@ -29,7 +30,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         <div class="absolute inset-0 bg-black/50" @click="close" />
 
         <!-- Panel -->
-        <div data-testid="booking-dialog" class="relative z-10 bg-background rounded-lg shadow-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div data-testid="booking-dialog" class="relative z-10 bg-background rounded-lg shadow-lg w-full mx-4 max-h-[90vh] overflow-y-auto" :class="props.size === 'lg' ? 'max-w-xl' : 'max-w-md'">
           <!-- Header -->
           <div class="flex items-center justify-between px-6 pt-6 pb-4">
             <h2 v-if="props.title" class="text-xl font-semibold">{{ props.title }}</h2>
@@ -38,7 +39,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
               @click="close"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
