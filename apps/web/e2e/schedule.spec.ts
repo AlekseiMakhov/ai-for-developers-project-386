@@ -21,15 +21,17 @@ test.describe('Schedules dashboard', () => {
     // Fill name
     await page.fill('#name', 'Тест E2E Событие')
 
-    // Select duration from dropdown
-    await page.selectOption('#duration', '45')
+    // Select duration from Radix Vue custom select (not a native <select>)
+    await page.click('#duration')
+    await page.locator('[role="option"]').filter({ hasText: '45 мин' }).click()
 
     // Submit
     await page.click('button[type="submit"]')
 
     // Card appears in grid
-    await expect(page.locator('text=Тест E2E Событие')).toBeVisible({ timeout: 5000 })
-    await expect(page.locator('text=45 мин')).toBeVisible()
+    await expect(page.locator('[data-testid="booking-dialog"]')).not.toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-testid="schedule-card"]').filter({ hasText: 'Тест E2E Событие' })).toBeVisible()
+    await expect(page.locator('[data-testid="schedule-card"]').filter({ hasText: '45 мин' })).toBeVisible()
   })
 
   test('edits an existing schedule', async ({ page, request }) => {
@@ -42,9 +44,9 @@ test.describe('Schedules dashboard', () => {
     await page.click('button[type="submit"]')
     await expect(page.locator('text=Исходное событие')).toBeVisible({ timeout: 5000 })
 
-    // Click edit button on the card (pencil icon button)
-    const card = page.locator('.grid > div').filter({ hasText: 'Исходное событие' })
-    await card.locator('button').nth(2).click()
+    // Click edit button on the card (pencil icon — nth(3): toggle, copy, open, edit, delete)
+    const card = page.locator('[data-testid="schedule-card"]').filter({ hasText: 'Исходное событие' })
+    await card.locator('button').nth(3).click()
 
     await expect(page.locator('[data-testid="booking-dialog"]')).toBeVisible()
 
@@ -65,8 +67,8 @@ test.describe('Schedules dashboard', () => {
     await page.click('button[type="submit"]')
     await expect(page.locator('text=Событие для удаления')).toBeVisible({ timeout: 5000 })
 
-    // Click delete icon on the card
-    const card = page.locator('.grid > div').filter({ hasText: 'Событие для удаления' })
+    // Click delete icon on the card (last button — delete is the last button)
+    const card = page.locator('[data-testid="schedule-card"]').filter({ hasText: 'Событие для удаления' })
     await card.locator('button').last().click()
 
     // Confirmation dialog must appear
@@ -75,13 +77,14 @@ test.describe('Schedules dashboard', () => {
 
     // Cancel — schedule should still be there
     await page.click('text=Отмена')
-    await expect(page.locator('text=Событие для удаления')).toBeVisible()
+    await expect(page.locator('[data-testid="booking-dialog"]')).not.toBeVisible({ timeout: 5000 })
+    await expect(card).toBeVisible()
 
     // Delete again and confirm
     await card.locator('button').last().click()
     await page.locator('[data-testid="confirm-delete-btn"]').click()
 
     // Schedule removed
-    await expect(page.locator('text=Событие для удаления')).not.toBeVisible({ timeout: 5000 })
+    await expect(card).not.toBeVisible({ timeout: 5000 })
   })
 })

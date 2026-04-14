@@ -498,8 +498,16 @@ cd apps/api && pytest
 # Frontend unit
 cd apps/web && npm run test
 
-# E2E
+# E2E — from host (requires Playwright installed locally)
 cd apps/web && npx playwright test
+
+# E2E — inside Docker (recommended, no local Playwright needed)
+# The web container uses mcr.microsoft.com/playwright base image with Chromium pre-installed.
+# API calls from fixtures go directly to the api service; browser calls go via Vite proxy (/api → api:8000).
+docker compose exec -e API_URL=http://api:8000 web npx playwright test
+
+# E2E — run a single spec inside Docker
+docker compose exec -e API_URL=http://api:8000 web npx playwright test e2e/schedule.spec.ts
 ```
 
 ### Generating types from TypeSpec
