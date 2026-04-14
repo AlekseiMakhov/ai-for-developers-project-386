@@ -71,7 +71,7 @@ async function onCancel(id: string) {
         :class="
           activeFilter === f.value
             ? 'bg-secondary text-foreground'
-            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+            : 'text-muted-foreground hover:text-primary hover:bg-accent'
         "
         @click="activeFilter = f.value"
       >

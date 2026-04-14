@@ -5,6 +5,7 @@ import type { Schedule, ScheduleCreate, TimeRange, WeeklyAvailability } from '@/
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'
+import Select from '@/components/ui/select/Select.vue'
 
 const props = defineProps<{ schedule: Schedule | null }>()
 const emit = defineEmits<{ done: []; cancel: [] }>()
@@ -12,6 +13,13 @@ const emit = defineEmits<{ done: []; cancel: [] }>()
 const scheduleStore = useScheduleStore()
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#f97316']
+const DURATION_OPTIONS = [
+  { value: '15', label: '15 мин' },
+  { value: '30', label: '30 мин' },
+  { value: '45', label: '45 мин' },
+  { value: '60', label: '60 мин' },
+  { value: '90', label: '90 мин' },
+]
 const DAYS: { key: keyof WeeklyAvailability; label: string }[] = [
   { key: 'monday', label: 'Пн' },
   { key: 'tuesday', label: 'Вт' },
@@ -127,7 +135,11 @@ async function submit() {
       </div>
       <div class="space-y-1.5">
         <Label for="duration">Длительность (мин)</Label>
-        <Input id="duration" v-model="form.duration" type="number" min="5" placeholder="30" />
+        <Select
+          id="duration"
+          v-model="form.duration"
+          :options="DURATION_OPTIONS"
+        />
       </div>
     </div>
 
@@ -139,7 +151,7 @@ async function submit() {
         v-model="form.description"
         placeholder="Опишите событие..."
         rows="3"
-        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none resize-none"
       />
     </div>
 
@@ -151,9 +163,9 @@ async function submit() {
           v-for="color in COLORS"
           :key="color"
           type="button"
-          class="w-8 h-8 rounded-full border-2 transition-all"
+          class="w-8 h-8 rounded-full border-2 transition-all focus:outline-none"
           :style="{ backgroundColor: color }"
-          :class="form.color === color ? 'border-foreground scale-110' : 'border-transparent'"
+          :class="form.color === color ? 'border-sky-500 border-[3px] scale-110' : 'border-transparent'"
           @click="form.color = color"
         />
       </div>
@@ -167,7 +179,7 @@ async function submit() {
           v-for="day in DAYS"
           :key="day.key"
           type="button"
-          class="px-4 py-2 rounded-md text-base font-medium border transition-colors"
+          class="px-3 py-1.5 rounded-md text-sm font-normal border transition-colors focus:outline-none"
           :class="
             form.activeDays.includes(day.key)
               ? 'bg-primary text-primary-foreground border-primary'

@@ -13,6 +13,7 @@ const authStore = useAuthStore()
 
 const showCreateDialog = ref(false)
 const editingSchedule = ref<Schedule | null>(null)
+const deletingSchedule = ref<Schedule | null>(null)
 
 onMounted(() => scheduleStore.fetchAll())
 
@@ -30,6 +31,20 @@ async function onFormDone() {
   showCreateDialog.value = false
   editingSchedule.value = null
 }
+
+function requestDelete(schedule: Schedule) {
+  deletingSchedule.value = schedule
+}
+
+async function confirmDelete() {
+  if (!deletingSchedule.value) return
+  await scheduleStore.remove(deletingSchedule.value.id)
+  deletingSchedule.value = null
+}
+
+function closeDeleteDialog() {
+  deletingSchedule.value = null
+}
 </script>
 
 <template>
@@ -44,7 +59,7 @@ async function onFormDone() {
       </div>
       <Button @click="openCreate" class="gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
         </svg>
         Новое событие
       </Button>
@@ -63,14 +78,14 @@ async function onFormDone() {
     </div>
 
     <!-- Schedule grid -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div v-else class="flex flex-wrap gap-4">
       <ScheduleCard
         v-for="schedule in scheduleStore.schedules"
         :key="schedule.id"
         :schedule="schedule"
         :user-slug="authStore.user?.slug ?? ''"
         @edit="openEdit(schedule)"
-        @delete="scheduleStore.remove(schedule.id)"
+        @delete="requestDelete(schedule)"
         @toggle="scheduleStore.update(schedule.id, { isActive: !schedule.isActive })"
       />
     </div>
@@ -80,6 +95,7 @@ async function onFormDone() {
   <Dialog
     :open="showCreateDialog"
     :title="editingSchedule ? 'Редактировать событие' : 'Новое событие'"
+    size="lg"
     @update:open="showCreateDialog = $event"
   >
     <ScheduleForm
@@ -87,5 +103,30 @@ async function onFormDone() {
       @done="onFormDone"
       @cancel="showCreateDialog = false"
     />
+  </Dialog>
+
+  <!-- Delete confirmation dialog -->
+  <Dialog
+    :open="!!deletingSchedule"
+    title="Удалить событие"
+    @update:open="closeDeleteDialog"
+  >
+    <div class="space-y-4">
+      <p class="text-base text-foreground">
+        Вы уверены, что хотите удалить
+        <span class="font-medium">«{{ deletingSchedule?.name }}»</span>?
+        Это действие нельзя отменить.
+      </p>
+      <div class="flex justify-end gap-2">
+        <Button variant="outline" @click="deletingSchedule = null">Отмена</Button>
+        <Button
+          variant="destructive"
+          data-testid="confirm-delete-btn"
+          @click="confirmDelete"
+        >
+          Удалить
+        </Button>
+      </div>
+    </div>
   </Dialog>
 </template>
