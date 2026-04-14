@@ -59,7 +59,7 @@ const onSubmit = handleSubmit(async (values) => {
         <CardContent class="space-y-4">
           <div class="space-y-1.5">
             <Label for="name">Имя</Label>
-            <Input id="name" v-model="name" v-bind="nameAttrs" placeholder="Иван Иванов" />
+            <Input id="name" v-model="name" v-bind="nameAttrs" placeholder="Имя" />
             <p v-if="errors.name" class="text-base text-destructive">{{ errors.name }}</p>
           </div>
 
