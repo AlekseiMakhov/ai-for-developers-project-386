@@ -5,15 +5,6 @@ import BookingStatusBadge from './BookingStatusBadge.vue'
 defineProps<{ booking: Booking }>()
 const emit = defineEmits<{ click: [] }>()
 
-function formatDate(iso: string | undefined): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
-
 function formatTime(iso: string | undefined): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })

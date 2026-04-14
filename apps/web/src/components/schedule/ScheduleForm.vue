@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useScheduleStore } from '@/stores/schedule'
-import type { Schedule, WeeklyAvailability } from '@/types'
+import type { Schedule, ScheduleCreate, TimeRange, WeeklyAvailability } from '@/types'
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'
@@ -12,7 +12,7 @@ const emit = defineEmits<{ done: []; cancel: [] }>()
 const scheduleStore = useScheduleStore()
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#f97316']
-const DAYS = [
+const DAYS: { key: keyof WeeklyAvailability; label: string }[] = [
   { key: 'monday', label: 'Пн' },
   { key: 'tuesday', label: 'Вт' },
   { key: 'wednesday', label: 'Ср' },
@@ -25,9 +25,8 @@ const DAYS = [
 function defaultState() {
   if (props.schedule) {
     const av = props.schedule.availability
-    const activeDays = DAYS.filter((d) => (av as any)[d.key]?.length > 0).map((d) => d.key)
-    const foundRanges = Object.values(av as any).find((v: any) => v?.length > 0) as any[] | undefined
-    const firstRange = foundRanges ? foundRanges[0] : undefined
+    const activeDays = DAYS.filter((d) => (av[d.key]?.length ?? 0) > 0).map((d) => d.key)
+    const firstRange = Object.values(av).find((v): v is TimeRange[] => !!v && v.length > 0)?.[0]
     return {
       name: props.schedule.name,
       slug: props.schedule.slug,
@@ -35,8 +34,8 @@ function defaultState() {
       description: props.schedule.description ?? '',
       color: props.schedule.color ?? COLORS[0],
       activeDays,
-      startHour: firstRange?.start?.split(':')[0] ?? '9',
-      endHour: firstRange?.end?.split(':')[0] ?? '17',
+      startHour: firstRange?.start.split(':')[0] ?? '9',
+      endHour: firstRange?.end.split(':')[0] ?? '17',
     }
   }
   return {
@@ -45,7 +44,7 @@ function defaultState() {
     duration: '30',
     description: '',
     color: COLORS[0],
-    activeDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    activeDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as (keyof WeeklyAvailability)[],
     startHour: '9',
     endHour: '17',
   }
@@ -66,14 +65,14 @@ watch(() => form.value.name, (val) => {
   }
 })
 
-function toggleDay(key: string) {
+function toggleDay(key: keyof WeeklyAvailability) {
   const idx = form.value.activeDays.indexOf(key)
   if (idx === -1) form.value.activeDays.push(key)
   else form.value.activeDays.splice(idx, 1)
 }
 
 function buildAvailability(): WeeklyAvailability {
-  const av: any = {}
+  const av: WeeklyAvailability = {}
   for (const day of DAYS) {
     av[day.key] = form.value.activeDays.includes(day.key)
       ? [{ start: `${form.value.startHour.padStart(2, '0')}:00`, end: `${form.value.endHour.padStart(2, '0')}:00` }]
@@ -86,7 +85,7 @@ async function submit() {
   error.value = null
   isLoading.value = true
   try {
-    const payload = {
+    const payload: ScheduleCreate = {
       name: form.value.name,
       slug: form.value.slug,
       duration: Number(form.value.duration),
@@ -101,7 +100,7 @@ async function submit() {
     if (props.schedule) {
       await scheduleStore.update(props.schedule.id, payload)
     } else {
-      await scheduleStore.create(payload as any)
+      await scheduleStore.create(payload)
     }
     emit('done')
   } catch {
