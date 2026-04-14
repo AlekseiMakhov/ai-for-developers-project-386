@@ -40,7 +40,7 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-background px-4">
+  <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
     <Card class="w-full max-w-md">
       <CardHeader>
         <CardTitle>Вход</CardTitle>
@@ -103,6 +103,13 @@ const onSubmit = handleSubmit(async (values) => {
         >
           Демо-аккаунт
         </button>
+
+        <RouterLink
+          to="/"
+          class="w-full rounded-md px-4 py-2 text-sm text-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Войти как гость →
+        </RouterLink>
       </div>
     </Card>
   </div>

@@ -1,7 +1,9 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -18,8 +20,71 @@ from app.services.slot import get_all_slots_for_date, get_dates_with_available_s
 router = APIRouter(prefix="/public", tags=["public"])
 
 
+class HostPublicResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
+
+    id: str
+    name: str
+    slug: str
+    timezone: str
+    schedule_count: int
+
+
+class HostsPageResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    items: list[HostPublicResponse]
+    total: int
+    page: int
+    page_size: int
+
+
 class PublicProfileResponse(UserResponse):
     pass
+
+
+@router.get("/hosts", response_model=HostsPageResponse, response_model_by_alias=True)
+async def list_hosts(
+    search: str | None = Query(None, description="Search by name"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(12, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return paginated list of users who have at least one active schedule."""
+    subq = (
+        select(Schedule.user_id, func.count(Schedule.id).label("schedule_count"))
+        .where(Schedule.is_active)
+        .group_by(Schedule.user_id)
+        .subquery()
+    )
+
+    base_query = select(User, subq.c.schedule_count).join(subq, User.id == subq.c.user_id)
+
+    if search:
+        base_query = base_query.where(User.name.ilike(f"%{search}%"))
+
+    total_result = await db.execute(
+        select(func.count()).select_from(base_query.subquery())
+    )
+    total = total_result.scalar_one()
+
+    rows_result = await db.execute(
+        base_query.order_by(User.name).offset((page - 1) * page_size).limit(page_size)
+    )
+    rows = rows_result.all()
+
+    items = [
+        HostPublicResponse(
+            id=user.id,
+            name=user.name,
+            slug=user.slug,
+            timezone=user.timezone,
+            schedule_count=count,
+        )
+        for user, count in rows
+    ]
+
+    return HostsPageResponse(items=items, total=total, page=page, page_size=page_size)
 
 
 async def _get_host_by_slug(db: AsyncSession, slug: str) -> User:
@@ -66,6 +131,30 @@ async def get_public_profile(
             for s in schedules
         ],
     }
+
+
+@router.get(
+    "/{slug}/schedules/{schedule_id}",
+    response_model=ScheduleResponse,
+    response_model_by_alias=True,
+)
+async def get_public_schedule(
+    slug: str,
+    schedule_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return schedule info regardless of is_active status, so the UI can show the unavailable state."""
+    host = await _get_host_by_slug(db, slug)
+    result = await db.execute(
+        select(Schedule).where(
+            Schedule.id == schedule_id,
+            Schedule.user_id == host.id,
+        )
+    )
+    schedule = result.scalar_one_or_none()
+    if schedule is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Schedule not found")
+    return schedule
 
 
 @router.get(

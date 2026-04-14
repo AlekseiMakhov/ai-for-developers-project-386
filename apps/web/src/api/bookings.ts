@@ -1,10 +1,27 @@
 import { request, authRequest } from './client'
-import type { Booking, BookingCreate, PublicProfile, Slot } from '@/types'
+import type { Booking, BookingCreate, HostsPage, PublicProfile, Schedule, Slot } from '@/types'
 
 // ── Public (no auth) ──────────────────────────────────────────────────────────
 
+export function getHosts(params?: {
+  search?: string
+  page?: number
+  pageSize?: number
+}): Promise<HostsPage> {
+  const query = new URLSearchParams()
+  if (params?.search) query.set('search', params.search)
+  if (params?.page) query.set('page', String(params.page))
+  if (params?.pageSize) query.set('page_size', String(params.pageSize))
+  const qs = query.toString()
+  return request<HostsPage>(`/public/hosts${qs ? `?${qs}` : ''}`)
+}
+
 export function getPublicProfile(slug: string): Promise<PublicProfile> {
   return request<PublicProfile>(`/public/${slug}`)
+}
+
+export function getPublicSchedule(slug: string, scheduleId: string): Promise<Schedule> {
+  return request<Schedule>(`/public/${slug}/schedules/${scheduleId}`)
 }
 
 export function getSlotsForDate(slug: string, scheduleId: string, date: string): Promise<Slot[]> {

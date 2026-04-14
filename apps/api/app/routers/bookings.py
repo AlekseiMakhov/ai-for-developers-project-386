@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import String, case, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -12,6 +12,17 @@ from app.schemas.booking import BookingResponse
 from app.services.booking import cancel_booking, confirm_booking
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
+
+
+def _effective_status():
+    """CASE WHEN expression: confirmed/pending bookings with elapsed slots become 'past'."""
+    return case(
+        (
+            Booking.status.in_(["pending", "confirmed"]) & (Slot.end_at < func.now()),
+            "past",
+        ),
+        else_=cast(Booking.status, String),
+    ).label("status")
 
 
 @router.get("", response_model=list[BookingResponse], response_model_by_alias=True)
@@ -36,7 +47,7 @@ async def list_bookings(
             Booking.guest_name,
             Booking.guest_email,
             Booking.guest_note,
-            Booking.status,
+            _effective_status(),
             Booking.confirmation_token,
             Booking.cancel_token,
             Booking.created_at,
@@ -47,7 +58,7 @@ async def list_bookings(
         .join(Slot, Slot.id == Booking.slot_id)
         .join(Schedule, Schedule.id == Booking.schedule_id)
         .where(Booking.schedule_id.in_(schedule_ids))
-        .order_by(Booking.created_at.desc())
+        .order_by(Slot.start_at.asc())
     )
     return [BookingResponse.model_validate(dict(row)) for row in result.mappings().all()]
 
@@ -82,7 +93,7 @@ async def get_booking(
             Booking.guest_name,
             Booking.guest_email,
             Booking.guest_note,
-            Booking.status,
+            _effective_status(),
             Booking.confirmation_token,
             Booking.cancel_token,
             Booking.created_at,

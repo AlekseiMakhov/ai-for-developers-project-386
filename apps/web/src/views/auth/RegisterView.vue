@@ -48,7 +48,7 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-background px-4">
+  <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
     <Card class="w-full max-w-md">
       <CardHeader>
         <CardTitle>Регистрация</CardTitle>

@@ -57,12 +57,13 @@ def _generate_slots_for_day(
 
 
 async def regenerate_slots(db: AsyncSession, schedule: Schedule) -> None:
-    # Delete all future available slots
+    # Full clean slate: delete ALL available slots for this schedule.
+    # No date filter — removes stale past slots and any accumulated duplicates.
+    # Booked/blocked slots are preserved (status != 'available').
     await db.execute(
         delete(Slot).where(
             Slot.schedule_id == schedule.id,
             Slot.status == "available",
-            Slot.start_at > datetime.now(timezone.utc),
         )
     )
 
@@ -71,7 +72,8 @@ async def regenerate_slots(db: AsyncSession, schedule: Schedule) -> None:
         return
 
     availability: dict = schedule.availability or {}
-    today = datetime.now(timezone.utc).date()
+    now = datetime.now(timezone.utc)
+    today = now.date()
 
     new_slots: list[Slot] = []
     for offset in range(settings.slot_generation_days):
@@ -82,16 +84,20 @@ async def regenerate_slots(db: AsyncSession, schedule: Schedule) -> None:
         if not time_ranges:
             continue
 
-        new_slots.extend(
-            _generate_slots_for_day(
-                schedule_id=schedule.id,
-                day=day,
-                time_ranges=time_ranges,
-                duration=schedule.duration,
-                buffer_before=schedule.buffer_before,
-                buffer_after=schedule.buffer_after,
-            )
+        day_slots = _generate_slots_for_day(
+            schedule_id=schedule.id,
+            day=day,
+            time_ranges=time_ranges,
+            duration=schedule.duration,
+            buffer_before=schedule.buffer_before,
+            buffer_after=schedule.buffer_after,
         )
+
+        # For today only: skip slots that have already started
+        if offset == 0:
+            day_slots = [s for s in day_slots if s.start_at > now]
+
+        new_slots.extend(day_slots)
 
     db.add_all(new_slots)
     await db.commit()
@@ -120,19 +126,23 @@ async def get_all_slots_for_date(
     target_date: date,
     host_user_id: str | None = None,
 ) -> list[Slot]:
-    """Return all slots (any status) for a given date, ordered by start time.
+    """Return slots for a given date, ordered by start time.
 
+    Past slots are excluded so guests cannot book time that has already passed.
     When host_user_id is supplied, "available" slots that overlap with any
     pending/confirmed booking on another host schedule are returned as "blocked".
     The change is in-memory only — nothing is persisted.
     """
+    now = datetime.now(timezone.utc)
     day_start = datetime(target_date.year, target_date.month, target_date.day, tzinfo=timezone.utc)
     day_end = day_start + timedelta(days=1)
+    # For today: skip already-started slots. For future dates: show all.
+    effective_start = max(day_start, now)
 
     result = await db.execute(
         select(Slot).where(
             Slot.schedule_id == schedule_id,
-            Slot.start_at >= day_start,
+            Slot.start_at >= effective_start,
             Slot.start_at < day_end,
         ).order_by(Slot.start_at)
     )
@@ -183,9 +193,12 @@ async def get_dates_with_available_slots(
     When host_user_id is supplied, a slot is considered available only if it
     does not overlap with any pending/confirmed booking on another host schedule.
     """
-    today = datetime.now(timezone.utc).date()
-    from_dt = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
-    to_dt = from_dt + timedelta(days=settings.slot_generation_days)
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    from_dt = now  # only future slots count as available
+    to_dt = datetime(today.year, today.month, today.day, tzinfo=timezone.utc) + timedelta(
+        days=settings.slot_generation_days
+    )
 
     # Subquery: booked slot rows from OTHER schedules of the same host
     # that overlap s.start_at / s.end_at (correlated on the outer Slot alias s).

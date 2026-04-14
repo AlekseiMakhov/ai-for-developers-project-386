@@ -4,20 +4,6 @@ import { getToken } from '@/api/client'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // Auth
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/auth/LoginView.vue'),
-      meta: { public: true },
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: () => import('@/views/auth/RegisterView.vue'),
-      meta: { public: true },
-    },
-
     // Dashboard
     {
       path: '/dashboard',
@@ -32,6 +18,35 @@ const router = createRouter({
           path: '/bookings',
           name: 'bookings',
           component: () => import('@/views/dashboard/BookingsView.vue'),
+        },
+      ],
+    },
+
+    // Public landing + hosts + auth pages
+    {
+      path: '/',
+      component: () => import('@/components/layout/PublicLayout.vue'),
+      meta: { public: true },
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: () => import('@/views/public/HomeView.vue'),
+        },
+        {
+          path: 'hosts',
+          name: 'hosts',
+          component: () => import('@/views/public/HostsView.vue'),
+        },
+        {
+          path: 'login',
+          name: 'login',
+          component: () => import('@/views/auth/LoginView.vue'),
+        },
+        {
+          path: 'register',
+          name: 'register',
+          component: () => import('@/views/auth/RegisterView.vue'),
         },
       ],
     },
@@ -83,8 +98,7 @@ const router = createRouter({
       props: (route) => ({ cancelToken: route.params.token }),
     },
 
-    { path: '/', redirect: '/dashboard' },
-    { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
+    { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })
 
@@ -96,7 +110,7 @@ router.beforeEach((to) => {
     return { name: 'login' }
   }
 
-  if (isPublic && hasToken && (to.name === 'login' || to.name === 'register')) {
+  if (isPublic && hasToken && (to.name === 'login' || to.name === 'register' || to.name === 'home')) {
     return { path: '/dashboard' }
   }
 })

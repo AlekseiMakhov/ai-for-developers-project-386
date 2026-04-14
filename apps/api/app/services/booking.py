@@ -17,6 +17,30 @@ def _fmt_slot(slot: Slot) -> str:
     return slot.start_at.astimezone(timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
 
 
+async def _get_booking_with_joins(db: AsyncSession, booking_id: str) -> dict:
+    result = await db.execute(
+        select(
+            Booking.id,
+            Booking.schedule_id,
+            Booking.slot_id,
+            Booking.guest_name,
+            Booking.guest_email,
+            Booking.guest_note,
+            Booking.status,
+            Booking.confirmation_token,
+            Booking.cancel_token,
+            Booking.created_at,
+            Slot.start_at.label("slot_start_at"),
+            Slot.end_at.label("slot_end_at"),
+            Schedule.name.label("schedule_name"),
+        )
+        .join(Slot, Slot.id == Booking.slot_id)
+        .join(Schedule, Schedule.id == Booking.schedule_id)
+        .where(Booking.id == booking_id)
+    )
+    return dict(result.mappings().one())
+
+
 async def _check_cross_schedule_conflict(
     db: AsyncSession,
     host_user_id: str,
@@ -46,7 +70,7 @@ async def create_booking(
     schedule: Schedule,
     payload: BookingCreate,
     frontend_url: str,
-) -> Booking:
+) -> dict:
     # Verify slot belongs to schedule and is available
     result = await db.execute(
         select(Slot).where(
@@ -87,10 +111,10 @@ async def create_booking(
     await db.commit()
     await db.refresh(booking)
 
-    return booking
+    return await _get_booking_with_joins(db, booking.id)
 
 
-async def confirm_booking(db: AsyncSession, confirmation_token: str) -> Booking:
+async def confirm_booking(db: AsyncSession, confirmation_token: str) -> dict:
     result = await db.execute(
         select(Booking).where(Booking.confirmation_token == confirmation_token)
     )
@@ -102,7 +126,7 @@ async def confirm_booking(db: AsyncSession, confirmation_token: str) -> Booking:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Booking already cancelled")
 
     if booking.status == "confirmed":
-        return booking
+        return await _get_booking_with_joins(db, booking.id)
 
     booking.status = "confirmed"
     await db.commit()
@@ -128,10 +152,10 @@ async def confirm_booking(db: AsyncSession, confirmation_token: str) -> Booking:
                 slot_start=_fmt_slot(slot),
             )
 
-    return booking
+    return await _get_booking_with_joins(db, booking.id)
 
 
-async def cancel_booking(db: AsyncSession, cancel_token: str) -> Booking:
+async def cancel_booking(db: AsyncSession, cancel_token: str) -> dict:
     result = await db.execute(
         select(Booking).where(Booking.cancel_token == cancel_token)
     )
@@ -140,7 +164,7 @@ async def cancel_booking(db: AsyncSession, cancel_token: str) -> Booking:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
 
     if booking.status == "cancelled":
-        return booking
+        return await _get_booking_with_joins(db, booking.id)
 
     # Free the slot
     slot_result = await db.execute(select(Slot).where(Slot.id == booking.slot_id))
@@ -168,4 +192,4 @@ async def cancel_booking(db: AsyncSession, cancel_token: str) -> Booking:
                 slot_start=_fmt_slot(slot),
             )
 
-    return booking
+    return await _get_booking_with_joins(db, booking.id)

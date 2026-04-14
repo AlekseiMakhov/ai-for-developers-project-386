@@ -69,7 +69,7 @@ function formatDateTime(iso: string | undefined): string {
       </dl>
 
       <!-- Actions -->
-      <div v-if="booking.status !== 'cancelled'" class="flex gap-2 pt-2 border-t border-border">
+      <div v-if="booking.status === 'pending' || booking.status === 'confirmed'" class="flex gap-2 pt-2 border-t border-border">
         <Button
           v-if="booking.status === 'pending'"
           class="flex-1"

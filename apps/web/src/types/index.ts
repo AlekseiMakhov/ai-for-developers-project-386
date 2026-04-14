@@ -93,7 +93,7 @@ export interface Slot {
   status: SlotStatus;
 }
 
-export type BookingStatus = "pending" | "confirmed" | "cancelled";
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "past";
 
 export interface Booking {
   id: string;
@@ -121,4 +121,19 @@ export interface BookingCreate {
 export interface PublicProfile {
   user: User;
   schedules: Schedule[];
+}
+
+export interface HostPublic {
+  id: string;
+  name: string;
+  slug: string;
+  timezone: string;
+  scheduleCount: number;
+}
+
+export interface HostsPage {
+  items: HostPublic[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

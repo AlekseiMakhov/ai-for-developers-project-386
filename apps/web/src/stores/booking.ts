@@ -3,6 +3,17 @@ import { ref } from 'vue'
 import * as bookingsApi from '@/api/bookings'
 import type { Booking, BookingCreate, PublicProfile, Slot } from '@/types'
 
+const SESSION_KEY = 'createdBooking'
+
+function loadBookingFromSession(): Booking | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY)
+    return raw ? (JSON.parse(raw) as Booking) : null
+  } catch {
+    return null
+  }
+}
+
 export const useBookingStore = defineStore('booking', () => {
   // Public booking flow state
   const profile = ref<PublicProfile | null>(null)
@@ -11,7 +22,7 @@ export const useBookingStore = defineStore('booking', () => {
   const availableDates = ref<string[] | null>(null)
   const dateSlots = ref<Slot[]>([])
   const selectedSlot = ref<Slot | null>(null)
-  const createdBooking = ref<Booking | null>(null)
+  const createdBooking = ref<Booking | null>(loadBookingFromSession())
 
   // Host bookings
   const bookings = ref<Booking[]>([])
@@ -48,6 +59,7 @@ export const useBookingStore = defineStore('booking', () => {
   async function submitBooking(slug: string, scheduleId: string, payload: BookingCreate): Promise<Booking> {
     const booking = await bookingsApi.createBooking(slug, scheduleId, payload)
     createdBooking.value = booking
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(booking))
     return booking
   }
 
@@ -80,6 +92,7 @@ export const useBookingStore = defineStore('booking', () => {
     dateSlots.value = []
     selectedSlot.value = null
     createdBooking.value = null
+    sessionStorage.removeItem(SESSION_KEY)
   }
 
   return {
