@@ -72,7 +72,7 @@ async def update_schedule(
     schedule = await _get_own_schedule(db, schedule_id, current_user.id)
 
     for field, value in payload.model_dump(exclude_none=True).items():
-        if field == "availability":
+        if field == "availability" and payload.availability is not None:
             setattr(schedule, field, payload.availability.model_dump())
         else:
             setattr(schedule, field, value)
