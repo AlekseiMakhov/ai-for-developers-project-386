@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { BookingStatus } from '@/types'
 
-defineProps<{ status: BookingStatus }>()
+const { status } = defineProps<{ status: BookingStatus }>()
 
-const labels: Record<BookingStatus, string> = {
-  pending: 'Ожидает',
-  confirmed: 'Подтверждено',
-  cancelled: 'Отменено',
-  past: 'Завершено',
-}
+const { t } = useI18n()
+
+const labels = computed<Record<BookingStatus, string>>(() => ({
+  pending: t('booking.status.pending'),
+  confirmed: t('booking.status.confirmed'),
+  cancelled: t('booking.status.cancelled'),
+  past: t('booking.status.past'),
+}))
 
 const classes: Record<BookingStatus, string> = {
   pending: 'bg-yellow-100 text-yellow-800',

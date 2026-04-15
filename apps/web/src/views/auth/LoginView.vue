@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
@@ -15,11 +16,15 @@ import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'
 import { RouterLink } from 'vue-router'
 
-const schema = toTypedSchema(
-  z.object({
-    email: z.string().email('Введите корректный email'),
-    password: z.string().min(6, 'Минимум 6 символов'),
-  }),
+const { t } = useI18n()
+
+const schema = computed(() =>
+  toTypedSchema(
+    z.object({
+      email: z.string().email(t('auth.validation.invalidEmail')),
+      password: z.string().min(6, t('auth.validation.minChars6')),
+    }),
+  ),
 )
 
 const { handleSubmit, defineField, errors } = useForm({ validationSchema: schema })
@@ -34,7 +39,7 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     await authStore.login(values)
   } catch {
-    serverError.value = 'Неверный email или пароль'
+    serverError.value = t('auth.login.invalidCredentials')
   }
 })
 </script>
@@ -43,14 +48,14 @@ const onSubmit = handleSubmit(async (values) => {
   <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
     <Card class="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Вход</CardTitle>
-        <CardDescription>Войдите в свой аккаунт SlotBook</CardDescription>
+        <CardTitle>{{ t('auth.login.title') }}</CardTitle>
+        <CardDescription>{{ t('auth.login.description') }}</CardDescription>
       </CardHeader>
 
       <form @submit.prevent="onSubmit">
         <CardContent class="space-y-4">
           <div class="space-y-1.5">
-            <Label for="email">Email</Label>
+            <Label for="email">{{ t('common.email') }}</Label>
             <Input
               id="email"
               v-model="email"
@@ -62,7 +67,7 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <div class="space-y-1.5">
-            <Label for="password">Пароль</Label>
+            <Label for="password">{{ t('auth.login.password') }}</Label>
             <Input
               id="password"
               v-model="password"
@@ -78,13 +83,13 @@ const onSubmit = handleSubmit(async (values) => {
 
         <CardFooter class="flex flex-col gap-3">
           <Button type="submit" class="w-full" :disabled="authStore.isLoading">
-            {{ authStore.isLoading ? 'Вход...' : 'Войти' }}
+            {{ authStore.isLoading ? t('auth.login.submitting') : t('auth.login.submitBtn') }}
           </Button>
 
           <p class="text-base text-muted-foreground text-center">
-            Нет аккаунта?
+            {{ t('auth.login.noAccount') }}
             <RouterLink to="/register" class="text-primary underline-offset-4 hover:underline">
-              Зарегистрироваться
+              {{ t('auth.login.register') }}
             </RouterLink>
           </p>
         </CardFooter>
@@ -93,7 +98,7 @@ const onSubmit = handleSubmit(async (values) => {
       <div class="px-6 pb-6 flex flex-col gap-3">
         <div class="relative w-full flex items-center gap-2">
           <div class="flex-1 border-t border-border" />
-          <span class="text-xs text-muted-foreground">или</span>
+          <span class="text-xs text-muted-foreground">{{ t('auth.login.or') }}</span>
           <div class="flex-1 border-t border-border" />
         </div>
 
@@ -101,14 +106,14 @@ const onSubmit = handleSubmit(async (values) => {
           class="w-full rounded-md border border-dashed border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
           @click="authStore.login({ email: 'john@example.com', password: 'changeme' })"
         >
-          Демо-аккаунт
+          {{ t('auth.login.demo') }}
         </button>
 
         <RouterLink
           to="/"
           class="w-full rounded-md px-4 py-2 text-sm text-center text-muted-foreground hover:text-foreground transition-colors"
         >
-          Войти как гость →
+          {{ t('auth.login.asGuest') }}
         </RouterLink>
       </div>
     </Card>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useBookingStore } from '@/stores/booking'
 import Card from '@/components/ui/card/Card.vue'
 import CardHeader from '@/components/ui/card/CardHeader.vue'
@@ -12,6 +13,7 @@ import Button from '@/components/ui/button/Button.vue'
 const route = useRoute()
 const router = useRouter()
 const store = useBookingStore()
+const { t } = useI18n()
 
 const slug = route.params.slug as string
 
@@ -23,7 +25,7 @@ function selectSchedule(scheduleId: string) {
 </script>
 
 <template>
-  <div v-if="store.isLoading" class="text-muted-foreground text-base">Загрузка...</div>
+  <div v-if="store.isLoading" class="text-muted-foreground text-base">{{ t('common.loading') }}</div>
 
   <div v-else-if="store.profile">
     <!-- Host info -->
@@ -42,7 +44,7 @@ function selectSchedule(scheduleId: string) {
       v-if="store.profile.schedules.length === 0"
       class="text-center py-12 text-muted-foreground"
     >
-      <p class="text-lg font-medium">Нет доступных событий для записи</p>
+      <p class="text-lg font-medium">{{ t('public.profile.noSchedules') }}</p>
     </div>
 
     <!-- Schedule list -->
@@ -71,7 +73,7 @@ function selectSchedule(scheduleId: string) {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {{ schedule.duration }} мин
+              {{ schedule.duration }} {{ t('common.min') }}
             </span>
             <span class="flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,13 +82,13 @@ function selectSchedule(scheduleId: string) {
               {{ schedule.timezone }}
             </span>
           </div>
-          <Button class="w-full mt-4" variant="outline">Выбрать время</Button>
+          <Button class="w-full mt-4" variant="outline">{{ t('public.profile.selectTime') }}</Button>
         </CardContent>
       </Card>
     </div>
   </div>
 
   <div v-else class="text-center py-12 text-muted-foreground">
-    <p class="text-lg font-medium">Пользователь не найден</p>
+    <p class="text-lg font-medium">{{ t('public.profile.notFound') }}</p>
   </div>
 </template>

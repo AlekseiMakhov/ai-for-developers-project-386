@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useBookingStore } from '@/stores/booking'
 import { guestCancelBooking, guestConfirmBooking } from '@/api/bookings'
 import { ApiError } from '@/api/client'
@@ -11,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const store = useBookingStore()
+const { t, locale } = useI18n()
 
 const booking = ref<Booking | null>(store.createdBooking)
 const pageStatus = ref<'created' | 'loading' | 'confirmed' | 'cancelled' | 'error'>('created')
@@ -24,7 +26,7 @@ onMounted(async () => {
       pageStatus.value = 'confirmed'
     } catch (e) {
       pageStatus.value = 'error'
-      errorMsg.value = e instanceof ApiError ? e.message : 'Ошибка подтверждения'
+      errorMsg.value = e instanceof ApiError ? e.message : t('public.confirm.confirmError')
     }
   } else if (props.cancelToken) {
     pageStatus.value = 'loading'
@@ -33,14 +35,14 @@ onMounted(async () => {
       pageStatus.value = 'cancelled'
     } catch (e) {
       pageStatus.value = 'error'
-      errorMsg.value = e instanceof ApiError ? e.message : 'Ошибка отмены'
+      errorMsg.value = e instanceof ApiError ? e.message : t('public.confirm.cancelError')
     }
   }
 })
 
 function formatDateTime(iso?: string): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString('ru-RU', {
+  return new Date(iso).toLocaleString(locale.value, {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -51,8 +53,8 @@ function formatDateTime(iso?: string): string {
 
 const statusLabel = computed(() => {
   if (!booking.value) return ''
-  const map: Record<string, string> = { pending: 'Ожидает подтверждения', confirmed: 'Подтверждено', cancelled: 'Отменено' }
-  return map[booking.value.status] ?? booking.value.status
+  const key = booking.value.status as 'pending' | 'confirmed' | 'cancelled'
+  return t(`booking.statusLabel.${key}`, booking.value.status)
 })
 </script>
 
@@ -61,7 +63,7 @@ const statusLabel = computed(() => {
 
     <!-- Loading -->
     <div v-if="pageStatus === 'loading'" class="text-center text-muted-foreground">
-      Обработка...
+      {{ t('public.confirm.processing') }}
     </div>
 
     <!-- Booking created — show full details -->
@@ -71,32 +73,32 @@ const statusLabel = computed(() => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <h1 class="text-2xl font-bold text-foreground mb-1 text-center">Почти готово!</h1>
-      <p class="text-sm text-muted-foreground text-center mb-6">Ожидайте подтверждения от организатора</p>
+      <h1 class="text-2xl font-bold text-foreground mb-1 text-center">{{ t('public.confirm.createdTitle') }}</h1>
+      <p class="text-sm text-muted-foreground text-center mb-6">{{ t('public.confirm.createdSubtitle') }}</p>
 
       <div class="rounded-lg border bg-card p-5 space-y-3 text-sm">
         <div class="flex justify-between">
-          <span class="text-muted-foreground">Тип события</span>
+          <span class="text-muted-foreground">{{ t('public.confirm.eventType') }}</span>
           <span class="font-medium">{{ booking?.scheduleName ?? '—' }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-muted-foreground">Дата и время</span>
+          <span class="text-muted-foreground">{{ t('public.confirm.dateTime') }}</span>
           <span class="font-medium">{{ formatDateTime(booking?.slotStartAt) }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-muted-foreground">Имя</span>
+          <span class="text-muted-foreground">{{ t('public.confirm.name') }}</span>
           <span class="font-medium">{{ booking?.guestName }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-muted-foreground">Email</span>
+          <span class="text-muted-foreground">{{ t('common.email') }}</span>
           <span class="font-medium">{{ booking?.guestEmail }}</span>
         </div>
         <div v-if="booking?.guestNote" class="flex justify-between">
-          <span class="text-muted-foreground">Заметка</span>
+          <span class="text-muted-foreground">{{ t('public.confirm.note') }}</span>
           <span class="font-medium">{{ booking.guestNote }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-muted-foreground">Статус</span>
+          <span class="text-muted-foreground">{{ t('public.confirm.status') }}</span>
           <span class="font-medium">{{ statusLabel }}</span>
         </div>
       </div>
@@ -109,8 +111,8 @@ const statusLabel = computed(() => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <h1 class="text-2xl font-bold text-foreground mb-3">Запись подтверждена</h1>
-      <p class="text-base text-muted-foreground">Ваша запись успешно подтверждена.</p>
+      <h1 class="text-2xl font-bold text-foreground mb-3">{{ t('public.confirm.confirmedTitle') }}</h1>
+      <p class="text-base text-muted-foreground">{{ t('public.confirm.confirmedDesc') }}</p>
     </div>
 
     <!-- Cancelled -->
@@ -120,8 +122,8 @@ const statusLabel = computed(() => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </div>
-      <h1 class="text-2xl font-bold text-foreground mb-3">Запись отменена</h1>
-      <p class="text-base text-muted-foreground">Ваша запись успешно отменена.</p>
+      <h1 class="text-2xl font-bold text-foreground mb-3">{{ t('public.confirm.cancelledTitle') }}</h1>
+      <p class="text-base text-muted-foreground">{{ t('public.confirm.cancelledDesc') }}</p>
     </div>
 
     <!-- Error -->
@@ -131,7 +133,7 @@ const statusLabel = computed(() => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01M12 4a8 8 0 100 16A8 8 0 0012 4z" />
         </svg>
       </div>
-      <h1 class="text-2xl font-bold text-foreground mb-3">Ошибка</h1>
+      <h1 class="text-2xl font-bold text-foreground mb-3">{{ t('public.confirm.errorTitle') }}</h1>
       <p class="text-base text-muted-foreground">{{ errorMsg }}</p>
     </div>
 

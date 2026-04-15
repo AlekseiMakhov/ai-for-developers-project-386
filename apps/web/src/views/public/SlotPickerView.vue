@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useBookingStore } from '@/stores/booking'
 import Button from '@/components/ui/button/Button.vue'
 import { getPublicSchedule } from '@/api/bookings'
@@ -9,6 +10,7 @@ import type { Schedule, Slot } from '@/types'
 const route = useRoute()
 const router = useRouter()
 const store = useBookingStore()
+const { t, locale } = useI18n()
 
 const slug = route.params.slug as string
 const scheduleId = route.params.scheduleId as string
@@ -111,7 +113,7 @@ const calendarDays = computed(() => {
 })
 
 const monthLabel = computed(() =>
-  new Date(currentYear.value, currentMonth.value, 1).toLocaleString('ru', {
+  new Date(currentYear.value, currentMonth.value, 1).toLocaleString(locale.value, {
     month: 'long',
     year: 'numeric',
   }),
@@ -172,7 +174,7 @@ function proceed() {
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
 }
 
 // Available slots for the selected date (for "continue" button gating)
@@ -180,7 +182,15 @@ const availableSlotsForDate = computed(() =>
   store.dateSlots.filter((s) => s.status === 'available'),
 )
 
-const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const WEEKDAYS = computed(() => [
+  t('schedule.days.mon'),
+  t('schedule.days.tue'),
+  t('schedule.days.wed'),
+  t('schedule.days.thu'),
+  t('schedule.days.fri'),
+  t('schedule.days.sat'),
+  t('schedule.days.sun'),
+])
 </script>
 
 <template>
@@ -193,7 +203,7 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
       </svg>
-      Назад
+      {{ t('common.back') }}
     </button>
 
     <!-- Inactive schedule banner -->
@@ -215,14 +225,14 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
           d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
         />
       </svg>
-      <p class="text-xl font-semibold text-foreground">Запись на событие недоступна</p>
+      <p class="text-xl font-semibold text-foreground">{{ t('public.slots.inactive') }}</p>
       <p v-if="schedule" class="text-base text-muted-foreground">{{ schedule.name }}</p>
     </div>
 
     <!-- Schedule info -->
     <div class="mb-6" v-else-if="schedule">
       <h1 class="text-2xl font-bold text-foreground">{{ schedule.name }}</h1>
-      <p class="text-base text-muted-foreground mt-1">{{ schedule.duration }} мин · {{ schedule.timezone }}</p>
+      <p class="text-base text-muted-foreground mt-1">{{ schedule.duration }} {{ t('common.min') }} · {{ schedule.timezone }}</p>
     </div>
 
     <div v-if="!isScheduleInactive" class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -257,15 +267,15 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
         <div class="flex items-center gap-4 mb-3 text-xs text-muted-foreground">
           <span class="flex items-center gap-1">
             <span class="inline-block w-3 h-3 rounded-sm bg-green-200 dark:bg-green-900"></span>
-            Есть слоты
+            {{ t('public.slots.legend.hasSlots') }}
           </span>
           <span class="flex items-center gap-1">
             <span class="inline-block w-3 h-3 rounded-sm bg-red-200 dark:bg-red-900"></span>
-            Нет слотов
+            {{ t('public.slots.legend.noSlots') }}
           </span>
           <span class="flex items-center gap-1">
             <span class="inline-block w-3 h-3 rounded-sm bg-muted"></span>
-            Недоступно
+            {{ t('public.slots.legend.unavailable') }}
           </span>
         </div>
 
@@ -304,7 +314,7 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
             <div
               v-else-if="cell.state === 'no-slots'"
               class="w-full aspect-square rounded-md text-sm font-medium bg-red-100 text-red-400 dark:bg-red-900/30 dark:text-red-500 flex items-center justify-center cursor-not-allowed select-none"
-              :title="'Нет свободных слотов'"
+              :title="t('public.slots.noFreeSlots')"
             >
               {{ cell.date!.getDate() }}
             </div>
@@ -323,19 +333,19 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
       <!-- Slot grid -->
       <div>
         <div v-if="!selectedDateStr" class="text-muted-foreground text-base pt-2">
-          Выберите дату для просмотра слотов
+          {{ t('public.slots.selectDate') }}
         </div>
 
         <div v-else-if="store.isLoading" class="text-muted-foreground text-base">
-          Загрузка слотов...
+          {{ t('public.slots.loadingSlots') }}
         </div>
 
         <div v-else-if="store.dateSlots.length === 0" class="text-muted-foreground text-base">
-          Нет слотов на выбранную дату
+          {{ t('public.slots.noSlots') }}
         </div>
 
         <div v-else>
-          <p class="text-sm font-medium text-foreground mb-3">Выберите время</p>
+          <p class="text-sm font-medium text-foreground mb-3">{{ t('public.slots.selectTime') }}</p>
           <div class="grid grid-cols-3 gap-2" data-testid="slot-grid">
             <Button
               v-for="slot in store.dateSlots"
@@ -354,7 +364,7 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
                   ? 'opacity-40 cursor-not-allowed line-through'
                   : '',
               ]"
-              :title="slot.status !== 'available' ? 'Занято' : ''"
+              :title="slot.status !== 'available' ? t('public.slots.slotBooked') : ''"
               @click="pickSlot(slot)"
             >
               {{ formatTime(slot.startAt) }}
@@ -366,14 +376,14 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
             class="w-full mt-6"
             @click="proceed"
           >
-            Продолжить
+            {{ t('public.slots.proceed') }}
           </Button>
 
           <p
             v-else-if="availableSlotsForDate.length === 0"
             class="text-sm text-muted-foreground mt-3"
           >
-            Все слоты на этот день уже заняты
+            {{ t('public.slots.allBooked') }}
           </p>
         </div>
       </div>

@@ -1,0 +1,234 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "saving": "Saving...",
+    "creating": "Creating...",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "ok": "Got it",
+    "email": "Email",
+    "min": "min"
+  },
+  "nav": {
+    "events": "Events",
+    "bookings": "Bookings",
+    "logout": "Sign out",
+    "dashboard": "Dashboard",
+    "login": "Sign in"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "description": "Sign in to your SlotBook account",
+      "password": "Password",
+      "submitBtn": "Sign in",
+      "submitting": "Signing in...",
+      "noAccount": "No account?",
+      "register": "Sign up",
+      "or": "or",
+      "demo": "Demo account",
+      "asGuest": "Continue as guest →",
+      "invalidCredentials": "Invalid email or password"
+    },
+    "register": {
+      "title": "Sign up",
+      "description": "Create a SlotBook account",
+      "name": "Name",
+      "namePlaceholder": "Name",
+      "password": "Password",
+      "slug": "Your URL (slug)",
+      "slugPlaceholder": "john-doe",
+      "submitBtn": "Create account",
+      "submitting": "Creating...",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Sign in",
+      "serverError": "Registration failed. Please check your data and try again."
+    },
+    "validation": {
+      "invalidEmail": "Enter a valid email",
+      "minChars2": "At least 2 characters",
+      "minChars3": "At least 3 characters",
+      "minChars6": "At least 6 characters",
+      "slugFormat": "Lowercase letters, numbers and hyphens only"
+    }
+  },
+  "schedule": {
+    "title": "Event types",
+    "subtitle": "Create event types and share your booking link",
+    "newEvent": "New event",
+    "noEvents": "No events yet",
+    "noEventsHint": "Click \"New event\" to create the first type",
+    "editTitle": "Edit event",
+    "createTitle": "New event",
+    "deleteTitle": "Delete event",
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "cannotDeleteTitle": "Cannot delete event",
+    "cannotDeleteMsg": "Event \"{name}\" cannot be deleted — it has bookings. Deactivate it to close bookings.",
+    "form": {
+      "name": "Name *",
+      "namePlaceholder": "Consultation",
+      "slug": "Slug",
+      "slugPlaceholder": "consultation",
+      "duration": "Duration (min)",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the event...",
+      "color": "Color",
+      "days": "Working days",
+      "startHour": "Start (hour)",
+      "endHour": "End (hour)",
+      "saveError": "Error saving. Please try again.",
+      "submitSave": "Save",
+      "submitCreate": "Create",
+      "submitting": "Saving..."
+    },
+    "validation": {
+      "nameRequired": "Event name is required",
+      "hoursOrder": "Start hour must be earlier than end hour"
+    },
+    "card": {
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "copy": "Copy",
+      "share": "Share",
+      "linkCopied": "Link copied",
+      "shareText": "Book {name}"
+    },
+    "days": {
+      "mon": "Mo",
+      "tue": "Tu",
+      "wed": "We",
+      "thu": "Th",
+      "fri": "Fr",
+      "sat": "Sa",
+      "sun": "Su"
+    },
+    "duration": {
+      "d15": "15 min",
+      "d30": "30 min",
+      "d45": "45 min",
+      "d60": "60 min",
+      "d90": "90 min"
+    }
+  },
+  "booking": {
+    "title": "Bookings",
+    "subtitle": "Manage incoming bookings",
+    "noBookings": "No bookings",
+    "noBookingsStatus": "No bookings with this status",
+    "cancelTitle": "Cancel booking",
+    "cancelConfirm": "Are you sure you want to cancel the booking of \"{name}\"? This action cannot be undone.",
+    "cancelBtn": "Cancel booking",
+    "toast": {
+      "confirmed": "Booking confirmed",
+      "confirmError": "Failed to confirm booking",
+      "cancelled": "Booking cancelled",
+      "cancelError": "Failed to cancel booking"
+    },
+    "filters": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "past": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "past": "Completed"
+    },
+    "dialog": {
+      "defaultTitle": "Booking",
+      "guest": "Guest",
+      "eventType": "Event type",
+      "start": "Start",
+      "end": "End",
+      "note": "Note"
+    },
+    "statusLabel": {
+      "pending": "Awaiting confirmation",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "public": {
+    "home": {
+      "tagline": "Convenient online booking. Choose a specialist, pick a time slot, and book an appointment in a few clicks — no registration required.",
+      "bookBtn": "Book an appointment",
+      "loginBtn": "Sign in as specialist",
+      "feature1Title": "Fast booking",
+      "feature1Desc": "Choose a slot and fill out the form — it takes less than a minute.",
+      "feature2Title": "Many specialists",
+      "feature2Desc": "A wide selection of specialists with flexible schedules.",
+      "feature3Title": "No registration",
+      "feature3Desc": "Guests don't need an account — just provide your name and email."
+    },
+    "hosts": {
+      "title": "Specialists",
+      "subtitle": "Choose a specialist and book a convenient time",
+      "searchPlaceholder": "Search by name...",
+      "loadError": "Failed to load specialists. Please try again later.",
+      "notFound": "No specialists found",
+      "notFoundHint": "Try changing your search query",
+      "bookBtn": "Book",
+      "prevPage": "← Previous",
+      "nextPage": "Next →"
+    },
+    "profile": {
+      "noSchedules": "No available events for booking",
+      "notFound": "User not found",
+      "selectTime": "Choose time"
+    },
+    "slots": {
+      "inactive": "Booking unavailable for this event",
+      "selectDate": "Select a date to view slots",
+      "loadingSlots": "Loading slots...",
+      "noSlots": "No slots for the selected date",
+      "noFreeSlots": "No available slots",
+      "selectTime": "Choose time",
+      "slotBooked": "Booked",
+      "allBooked": "All slots for this day are booked",
+      "proceed": "Continue",
+      "legend": {
+        "hasSlots": "Has slots",
+        "noSlots": "No slots",
+        "unavailable": "Unavailable"
+      }
+    },
+    "bookingForm": {
+      "title": "Enter your details",
+      "guestName": "Your name *",
+      "guestNamePlaceholder": "John Doe",
+      "guestNote": "Note",
+      "guestNotePlaceholder": "Describe the meeting topic (optional)",
+      "submitBtn": "Book",
+      "submitting": "Submitting...",
+      "nameRequired": "Please enter your name",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Enter a valid email address",
+      "conflictError": "This slot is already booked, please choose another time",
+      "genericError": "An error occurred, please try again"
+    },
+    "confirm": {
+      "processing": "Processing...",
+      "createdTitle": "Almost there!",
+      "createdSubtitle": "Awaiting confirmation from the organizer",
+      "confirmedTitle": "Booking confirmed",
+      "confirmedDesc": "Your booking has been successfully confirmed.",
+      "cancelledTitle": "Booking cancelled",
+      "cancelledDesc": "Your booking has been successfully cancelled.",
+      "errorTitle": "Error",
+      "confirmError": "Confirmation error",
+      "cancelError": "Cancellation error",
+      "eventType": "Event type",
+      "dateTime": "Date and time",
+      "name": "Name",
+      "note": "Note",
+      "status": "Status"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Booking } from '@/types'
 import Dialog from '@/components/ui/dialog/Dialog.vue'
 import Button from '@/components/ui/button/Button.vue'
@@ -15,9 +16,11 @@ const emit = defineEmits<{
   cancel: [id: string]
 }>()
 
+const { t, locale } = useI18n()
+
 function formatDateTime(iso: string | undefined): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString('ru-RU', {
+  return new Date(iso).toLocaleString(locale.value, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -30,7 +33,7 @@ function formatDateTime(iso: string | undefined): string {
 <template>
   <Dialog
     :open="props.open"
-    :title="booking?.guestName ?? 'Бронирование'"
+    :title="booking?.guestName ?? t('booking.dialog.defaultTitle')"
     @update:open="emit('update:open', $event)"
   >
     <div v-if="booking" class="flex flex-col gap-4">
@@ -41,29 +44,29 @@ function formatDateTime(iso: string | undefined): string {
 
       <!-- Details -->
       <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt class="text-muted-foreground font-medium">Гость</dt>
+        <dt class="text-muted-foreground font-medium">{{ t('booking.dialog.guest') }}</dt>
         <dd class="text-foreground">{{ booking.guestName }}</dd>
 
-        <dt class="text-muted-foreground font-medium">Email</dt>
+        <dt class="text-muted-foreground font-medium">{{ t('common.email') }}</dt>
         <dd class="text-foreground break-all">{{ booking.guestEmail }}</dd>
 
         <template v-if="booking.scheduleName">
-          <dt class="text-muted-foreground font-medium">Тип события</dt>
+          <dt class="text-muted-foreground font-medium">{{ t('booking.dialog.eventType') }}</dt>
           <dd class="text-foreground">{{ booking.scheduleName }}</dd>
         </template>
 
         <template v-if="booking.slotStartAt">
-          <dt class="text-muted-foreground font-medium">Начало</dt>
+          <dt class="text-muted-foreground font-medium">{{ t('booking.dialog.start') }}</dt>
           <dd class="text-foreground">{{ formatDateTime(booking.slotStartAt) }}</dd>
         </template>
 
         <template v-if="booking.slotEndAt">
-          <dt class="text-muted-foreground font-medium">Конец</dt>
+          <dt class="text-muted-foreground font-medium">{{ t('booking.dialog.end') }}</dt>
           <dd class="text-foreground">{{ formatDateTime(booking.slotEndAt) }}</dd>
         </template>
 
         <template v-if="booking.guestNote">
-          <dt class="text-muted-foreground font-medium">Заметка</dt>
+          <dt class="text-muted-foreground font-medium">{{ t('booking.dialog.note') }}</dt>
           <dd class="text-foreground">{{ booking.guestNote }}</dd>
         </template>
       </dl>
@@ -76,7 +79,7 @@ function formatDateTime(iso: string | undefined): string {
           data-testid="confirm-booking-btn"
           @click="emit('confirm', booking.id)"
         >
-          Подтвердить
+          {{ t('common.confirm') }}
         </Button>
         <Button
           variant="outline"
@@ -84,7 +87,7 @@ function formatDateTime(iso: string | undefined): string {
           data-testid="cancel-booking-btn"
           @click="emit('cancel', booking.id)"
         >
-          Отменить
+          {{ t('common.cancel') }}
         </Button>
       </div>
     </div>

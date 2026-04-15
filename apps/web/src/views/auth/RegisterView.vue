@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
@@ -15,17 +16,21 @@ import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'
 import { RouterLink } from 'vue-router'
 
-const schema = toTypedSchema(
-  z.object({
-    name: z.string().min(2, 'Минимум 2 символа'),
-    email: z.string().email('Введите корректный email'),
-    password: z.string().min(6, 'Минимум 6 символов'),
-    slug: z
-      .string()
-      .min(3, 'Минимум 3 символа')
-      .regex(/^[a-z0-9-]+$/, 'Только строчные буквы, цифры и дефис'),
-    timezone: z.string().default('UTC'),
-  }),
+const { t } = useI18n()
+
+const schema = computed(() =>
+  toTypedSchema(
+    z.object({
+      name: z.string().min(2, t('auth.validation.minChars2')),
+      email: z.string().email(t('auth.validation.invalidEmail')),
+      password: z.string().min(6, t('auth.validation.minChars6')),
+      slug: z
+        .string()
+        .min(3, t('auth.validation.minChars3'))
+        .regex(/^[a-z0-9-]+$/, t('auth.validation.slugFormat')),
+      timezone: z.string().default('UTC'),
+    }),
+  ),
 )
 
 const { handleSubmit, defineField, errors } = useForm({ validationSchema: schema })
@@ -42,7 +47,7 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     await authStore.register({ ...values, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
   } catch {
-    serverError.value = 'Ошибка регистрации. Проверьте данные и попробуйте снова.'
+    serverError.value = t('auth.register.serverError')
   }
 })
 </script>
@@ -51,20 +56,20 @@ const onSubmit = handleSubmit(async (values) => {
   <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
     <Card class="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Регистрация</CardTitle>
-        <CardDescription>Создайте аккаунт SlotBook</CardDescription>
+        <CardTitle>{{ t('auth.register.title') }}</CardTitle>
+        <CardDescription>{{ t('auth.register.description') }}</CardDescription>
       </CardHeader>
 
       <form @submit.prevent="onSubmit">
         <CardContent class="space-y-4">
           <div class="space-y-1.5">
-            <Label for="name">Имя</Label>
-            <Input id="name" v-model="name" v-bind="nameAttrs" placeholder="Имя" />
+            <Label for="name">{{ t('auth.register.name') }}</Label>
+            <Input id="name" v-model="name" v-bind="nameAttrs" :placeholder="t('auth.register.namePlaceholder')" />
             <p v-if="errors.name" class="text-base text-destructive">{{ errors.name }}</p>
           </div>
 
           <div class="space-y-1.5">
-            <Label for="email">Email</Label>
+            <Label for="email">{{ t('common.email') }}</Label>
             <Input
               id="email"
               v-model="email"
@@ -76,7 +81,7 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <div class="space-y-1.5">
-            <Label for="password">Пароль</Label>
+            <Label for="password">{{ t('auth.register.password') }}</Label>
             <Input
               id="password"
               v-model="password"
@@ -88,10 +93,10 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <div class="space-y-1.5">
-            <Label for="slug">Ваш URL (slug)</Label>
+            <Label for="slug">{{ t('auth.register.slug') }}</Label>
             <div class="flex items-center gap-1">
               <span class="text-base text-muted-foreground whitespace-nowrap">slotbook.app/</span>
-              <Input id="slug" v-model="slug" v-bind="slugAttrs" placeholder="ivan-ivanov" />
+              <Input id="slug" v-model="slug" v-bind="slugAttrs" :placeholder="t('auth.register.slugPlaceholder')" />
             </div>
             <p v-if="errors.slug" class="text-base text-destructive">{{ errors.slug }}</p>
           </div>
@@ -101,12 +106,12 @@ const onSubmit = handleSubmit(async (values) => {
 
         <CardFooter class="flex flex-col gap-3">
           <Button type="submit" class="w-full" :disabled="authStore.isLoading">
-            {{ authStore.isLoading ? 'Создание...' : 'Создать аккаунт' }}
+            {{ authStore.isLoading ? t('auth.register.submitting') : t('auth.register.submitBtn') }}
           </Button>
           <p class="text-base text-muted-foreground text-center">
-            Уже есть аккаунт?
+            {{ t('auth.register.haveAccount') }}
             <RouterLink to="/login" class="text-primary underline-offset-4 hover:underline">
-              Войти
+              {{ t('auth.register.loginLink') }}
             </RouterLink>
           </p>
         </CardFooter>

@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import Button from '@/components/ui/button/Button.vue'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher.vue'
+import Tooltip from '@/components/ui/tooltip/Tooltip.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
 const toast = useToast()
+const { t } = useI18n()
 
 onMounted(() => {
   if (!authStore.user) authStore.fetchMe()
@@ -46,7 +50,7 @@ onMounted(() => {
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span class="hidden sm:inline">События</span>
+            <span class="hidden sm:inline">{{ t('nav.events') }}</span>
           </RouterLink>
           <RouterLink
             to="/bookings"
@@ -60,23 +64,26 @@ onMounted(() => {
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            <span class="hidden sm:inline">Бронирования</span>
+            <span class="hidden sm:inline">{{ t('nav.bookings') }}</span>
           </RouterLink>
         </nav>
 
         <!-- User menu -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <LanguageSwitcher />
           <div class="flex items-center gap-2">
             <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium select-none">
               {{ authStore.user?.name?.charAt(0).toUpperCase() ?? '?' }}
             </div>
             <span class="text-sm font-medium text-foreground hidden sm:block">{{ authStore.user?.name }}</span>
           </div>
-          <Button variant="ghost" size="icon" class="w-9 h-9 text-muted-foreground" title="Выйти" @click="authStore.logout">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </Button>
+          <Tooltip :text="t('nav.logout')">
+            <Button variant="ghost" size="icon" class="w-9 h-9 text-muted-foreground" @click="authStore.logout">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </Button>
+          </Tooltip>
         </div>
       </div>
     </header>

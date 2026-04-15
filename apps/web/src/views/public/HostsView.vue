@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useQuery } from '@tanstack/vue-query'
 import { RouterLink } from 'vue-router'
 import { getHosts } from '@/api/bookings'
@@ -11,6 +12,8 @@ import CardTitle from '@/components/ui/card/CardTitle.vue'
 import CardDescription from '@/components/ui/card/CardDescription.vue'
 import CardContent from '@/components/ui/card/CardContent.vue'
 import CardFooter from '@/components/ui/card/CardFooter.vue'
+
+const { t, locale } = useI18n()
 
 const PAGE_SIZE = 12
 
@@ -37,21 +40,31 @@ const totalPages = computed(() => {
   return Math.ceil(data.value.total / PAGE_SIZE)
 })
 
+function scheduleCountText(n: number): string {
+  if (locale.value === 'en') {
+    return n === 1 ? `${n} schedule` : `${n} schedules`
+  }
+  const rem10 = n % 10
+  const rem100 = n % 100
+  if (rem10 === 1 && rem100 !== 11) return `${n} расписание`
+  if (rem10 >= 2 && rem10 <= 4 && (rem100 < 10 || rem100 >= 20)) return `${n} расписания`
+  return `${n} расписаний`
+}
 </script>
 
 <template>
   <div class="flex flex-col gap-6">
     <!-- Header -->
     <div class="flex flex-col gap-1">
-      <h1 class="text-2xl font-bold text-foreground">Специалисты</h1>
-      <p class="text-muted-foreground">Выберите специалиста и забронируйте удобное время</p>
+      <h1 class="text-2xl font-bold text-foreground">{{ t('public.hosts.title') }}</h1>
+      <p class="text-muted-foreground">{{ t('public.hosts.subtitle') }}</p>
     </div>
 
     <!-- Search -->
     <div class="max-w-sm">
       <Input
         v-model="searchInput"
-        placeholder="Поиск по имени..."
+        :placeholder="t('public.hosts.searchPlaceholder')"
         class="w-full"
       />
     </div>
@@ -76,7 +89,7 @@ const totalPages = computed(() => {
 
     <!-- Error -->
     <div v-else-if="isError" class="text-center py-16 text-destructive">
-      Не удалось загрузить список специалистов. Попробуйте позже.
+      {{ t('public.hosts.loadError') }}
     </div>
 
     <!-- Empty -->
@@ -90,9 +103,9 @@ const totalPages = computed(() => {
         <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
         <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
-      <p class="text-muted-foreground text-lg">Специалисты не найдены</p>
+      <p class="text-muted-foreground text-lg">{{ t('public.hosts.notFound') }}</p>
       <p v-if="search" class="text-sm text-muted-foreground">
-        Попробуйте изменить поисковый запрос
+        {{ t('public.hosts.notFoundHint') }}
       </p>
     </div>
 
@@ -114,13 +127,12 @@ const totalPages = computed(() => {
         </CardHeader>
         <CardContent class="pb-3 flex-1">
           <p class="text-sm text-muted-foreground">
-            {{ host.scheduleCount }}
-            {{ host.scheduleCount === 1 ? 'расписание' : host.scheduleCount < 5 ? 'расписания' : 'расписаний' }}
+            {{ scheduleCountText(host.scheduleCount) }}
           </p>
         </CardContent>
         <CardFooter>
           <Button as-child class="w-full" size="sm">
-            <RouterLink :to="`/book/${host.slug}`">Записаться</RouterLink>
+            <RouterLink :to="`/book/${host.slug}`">{{ t('public.hosts.bookBtn') }}</RouterLink>
           </Button>
         </CardFooter>
       </Card>
@@ -134,7 +146,7 @@ const totalPages = computed(() => {
         :disabled="page <= 1"
         @click="page--"
       >
-        ← Назад
+        {{ t('public.hosts.prevPage') }}
       </Button>
       <span class="text-sm text-muted-foreground px-2">
         {{ page }} / {{ totalPages }}
@@ -145,7 +157,7 @@ const totalPages = computed(() => {
         :disabled="page >= totalPages"
         @click="page++"
       >
-        Вперёд →
+        {{ t('public.hosts.nextPage') }}
       </Button>
     </div>
   </div>
