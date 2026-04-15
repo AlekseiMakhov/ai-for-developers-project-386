@@ -10,8 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger Railway redeploy
-        run: curl -f "${{ secrets.RAILWAY_DEPLOY_HOOK }}"
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Redeploy API service
+        run: railway redeploy --service api --yes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
   deploy-web:
     name: Deploy Web to Vercel
@@ -29,7 +34,8 @@ jobs:
 
       - name: Deploy to Vercel
         working-directory: apps/web
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
