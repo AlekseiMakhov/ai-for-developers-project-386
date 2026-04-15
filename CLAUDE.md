@@ -468,11 +468,24 @@ Triggers: push to main (after CI passes)
 
 ```
 Jobs:
-  deploy:
-    - Build Docker images (api + web)
-    - Push to container registry (GHCR or Docker Hub)
-    - SSH to server and run docker-compose pull + up
+  deploy-api:
+    - Triggers Railway redeploy via RAILWAY_DEPLOY_HOOK secret (curl)
+
+  deploy-web:
+    - Deploys frontend to Vercel via Vercel CLI (vercel deploy --prod --yes)
+    - Requires secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 ```
+
+### GitHub Secrets required
+
+| Secret | Where to get |
+|---|---|
+| `RAILWAY_TOKEN` | Railway → Account Settings → Tokens → Create Token |
+| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens → Create Token |
+| `VERCEL_ORG_ID` | Run `npx vercel link` in `apps/web/` → read from `.vercel/project.json` |
+| `VERCEL_PROJECT_ID` | Run `npx vercel link` in `apps/web/` → read from `.vercel/project.json` |
+
+> Railway CLI (`railway redeploy --service api --yes`) is used to trigger redeployment — deploy hook URLs are no longer supported.
 
 ---
 
