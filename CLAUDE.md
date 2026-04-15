@@ -592,10 +592,41 @@ Branch: `dev/phase-4`
 - Frontend: `BookingsView` with `@schedule-x/vue` calendar, `BookingCard`, `BookingDialog`, status badges
 - E2E: Playwright spec `booking-dashboard.spec.ts` — list bookings, confirm/cancel actions, calendar view
 
-### Phase 5 — CI/CD 🚧 (in progress)
+### Phase 5 — CI/CD ✅ (merged)
 Branch: `dev/phase-5`
-- GitHub Actions: CI (lint + tests + e2e) and CD (build Docker images, deploy via SSH)
+- GitHub Actions: CI (lint + tests + e2e) and CD (Vercel deploy via CLI)
 - Production `docker-compose.prod.yml` with Nginx reverse proxy
+- Railway deploys automatically via GitHub integration (no CD step needed)
+
+### Phase 5.5 — i18n ✅ (merged)
+Branch: `dev/i18n`
+- `vue-i18n` added; supported locales: **ru** (default) + **en**
+- Translation files: `src/locales/ru.json`, `src/locales/en.json`
+- Playwright config set to `ru-RU` locale for consistent e2e tests
+
+### Phase 6 — Mobile UI Polish ✅ (merged)
+Branch: `dev/phase-6-ui-mobile`
+- Favicon: custom SVG calendar icon (`public/favicon.svg`), blue `#2563EB` background
+- Font: Plus Jakarta Sans via Google Fonts, applied globally
+- `viewport-fit=cover` + `env(safe-area-inset-*)` for iPhone notch/home bar
+- `AppLayout.vue`: bottom navigation bar on mobile (Dashboard / Schedules / Bookings), hidden sidebar on small screens
+- `PublicLayout.vue`: mobile-friendly header
+- `BookingsView.vue`: sticky header with filters on mobile
+- Locales (`ru.json` / `en.json`): bottom nav labels added
+
+### Phase 7 — PWA ✅ (merged)
+Branch: `dev/phase-7-pwa`
+- `vite-plugin-pwa` — service worker (Workbox, `autoUpdate`), web app manifest injected at build time
+- Icons generated from `favicon.svg` via `@vite-pwa/assets-generator`: 64, 192, 512 px PNG + maskable 512 + Apple touch 180
+- Workbox caching: `CacheFirst` for Google Fonts, `NetworkFirst` for `/api/*`
+- `index.html`: `apple-touch-icon`, `theme-color`, `apple-mobile-web-app-*` meta tags
+- `PwaInstallPrompt.vue` — 3-mode smart banner:
+  - **Android/Desktop**: native `beforeinstallprompt` → кнопка «Установить»
+  - **iOS Safari**: инструкция «Поделиться → На экран "Домой"»
+  - **iOS Chrome/Firefox**: подсказка «Откройте в Safari»
+  - Не показывается если уже установлено (`standalone`) или закрыто в сессии
+- `npm run generate-pwa-assets` — скрипт для регенерации иконок
+- CI/CD: Node.js 20 → 24
 
 ---
 
