@@ -24,7 +24,7 @@
   "auth": {
     "login": {
       "title": "Sign in",
-      "description": "Sign in to your SlotBook account",
+      "description": "Sign in to your Slotbook account",
       "password": "Password",
       "submitBtn": "Sign in",
       "submitting": "Signing in...",
@@ -37,7 +37,7 @@
     },
     "register": {
       "title": "Sign up",
-      "description": "Create a SlotBook account",
+      "description": "Create a Slotbook account",
       "name": "Name",
       "namePlaceholder": "Name",
       "password": "Password",

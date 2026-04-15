@@ -24,7 +24,7 @@
   "auth": {
     "login": {
       "title": "Вход",
-      "description": "Войдите в свой аккаунт SlotBook",
+      "description": "Войдите в свой аккаунт Slotbook",
       "password": "Пароль",
       "submitBtn": "Войти",
       "submitting": "Вход...",
@@ -37,7 +37,7 @@
     },
     "register": {
       "title": "Регистрация",
-      "description": "Создайте аккаунт SlotBook",
+      "description": "Создайте аккаунт Slotbook",
       "name": "Имя",
       "namePlaceholder": "Имя",
       "password": "Пароль",

@@ -73,34 +73,34 @@ async function confirmCancel() {
 
 <template>
   <div>
-    <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-foreground">{{ t('booking.title') }}</h1>
-      <p class="text-base text-muted-foreground mt-1">{{ t('booking.subtitle') }}</p>
-    </div>
-
-    <!-- Filters -->
-    <div class="flex items-center gap-1 mb-4 flex-wrap">
-      <button
-        v-for="f in filters"
-        :key="f.value"
-        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-        :class="
-          activeFilter === f.value
-            ? ['bg-secondary', statusTextColor[f.value]]
-            : 'text-muted-foreground hover:text-primary hover:bg-accent'
-        "
-        @click="activeFilter = f.value"
-      >
-        {{ f.label }}
-        <span class="ml-1 text-xs opacity-60">
-          {{ bookingStore.bookings.filter((b) => b.status === f.value).length }}
-        </span>
-      </button>
+    <!-- Sticky: title + filters -->
+    <div class="sticky top-0 z-[5] bg-background pb-3 border-b border-border">
+      <div class="mb-3">
+        <h1 class="text-2xl font-bold text-foreground">{{ t('booking.title') }}</h1>
+        <p class="text-base text-muted-foreground mt-1">{{ t('booking.subtitle') }}</p>
+      </div>
+      <div class="flex items-center gap-1 flex-wrap">
+        <button
+          v-for="f in filters"
+          :key="f.value"
+          class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+          :class="
+            activeFilter === f.value
+              ? ['bg-secondary', statusTextColor[f.value]]
+              : 'text-muted-foreground hover:text-primary hover:bg-accent'
+          "
+          @click="activeFilter = f.value"
+        >
+          {{ f.label }}
+          <span class="ml-1 text-xs opacity-60">
+            {{ bookingStore.bookings.filter((b) => b.status === f.value).length }}
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="bookingStore.isLoading" class="text-muted-foreground text-base">{{ t('common.loading') }}</div>
+    <div v-if="bookingStore.isLoading" class="text-muted-foreground text-base mt-4">{{ t('common.loading') }}</div>
 
     <!-- Empty state -->
     <div
@@ -116,7 +116,7 @@ async function confirmCancel() {
     </div>
 
     <!-- Booking list -->
-    <div v-else class="flex flex-col gap-2">
+    <div v-else class="flex flex-col gap-2 mt-4">
       <BookingCard
         v-for="booking in filteredBookings"
         :key="booking.id"

@@ -52,7 +52,7 @@ function formatTime(iso: string | undefined): string {
     </div>
 
     <!-- Arrow -->
-    <svg class="w-5 h-5 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg class="w-6 h-6 sm:w-5 sm:h-5 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
     </svg>
   </div>
