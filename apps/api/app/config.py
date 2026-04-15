@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     frontend_url: str = "http://localhost:5173"
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [url.strip() for url in self.frontend_url.split(",") if url.strip()]
     slot_generation_days: int = 14
 
     class Config:
