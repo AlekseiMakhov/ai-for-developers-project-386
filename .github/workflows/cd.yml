@@ -5,13 +5,10 @@ on:
     branches: [main]
 
 jobs:
-  deploy:
-    name: Trigger Render deploys
+  deploy-api:
+    name: Deploy API to Railway
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy API
-        run: curl -f "${{ secrets.RENDER_API_DEPLOY_HOOK }}"
-
-      - name: Deploy Web
-        run: curl -f "${{ secrets.RENDER_WEB_DEPLOY_HOOK }}"
+      - name: Trigger Railway redeploy
+        run: curl -f "${{ secrets.RAILWAY_DEPLOY_HOOK }}"
