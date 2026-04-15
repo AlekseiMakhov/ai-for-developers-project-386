@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useScheduleStore } from '@/stores/schedule'
 import type { Schedule, ScheduleCreate, TimeRange, WeeklyAvailability } from '@/types'
 import Button from '@/components/ui/button/Button.vue'
@@ -11,29 +12,36 @@ const props = defineProps<{ schedule: Schedule | null }>()
 const emit = defineEmits<{ done: []; cancel: [] }>()
 
 const scheduleStore = useScheduleStore()
+const { t } = useI18n()
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#f97316']
-const DURATION_OPTIONS = [
-  { value: '15', label: '15 мин' },
-  { value: '30', label: '30 мин' },
-  { value: '45', label: '45 мин' },
-  { value: '60', label: '60 мин' },
-  { value: '90', label: '90 мин' },
+
+const DURATION_OPTIONS = computed(() => [
+  { value: '15', label: t('schedule.duration.d15') },
+  { value: '30', label: t('schedule.duration.d30') },
+  { value: '45', label: t('schedule.duration.d45') },
+  { value: '60', label: t('schedule.duration.d60') },
+  { value: '90', label: t('schedule.duration.d90') },
+])
+
+const DAY_KEYS: { key: keyof WeeklyAvailability; labelKey: string }[] = [
+  { key: 'monday', labelKey: 'schedule.days.mon' },
+  { key: 'tuesday', labelKey: 'schedule.days.tue' },
+  { key: 'wednesday', labelKey: 'schedule.days.wed' },
+  { key: 'thursday', labelKey: 'schedule.days.thu' },
+  { key: 'friday', labelKey: 'schedule.days.fri' },
+  { key: 'saturday', labelKey: 'schedule.days.sat' },
+  { key: 'sunday', labelKey: 'schedule.days.sun' },
 ]
-const DAYS: { key: keyof WeeklyAvailability; label: string }[] = [
-  { key: 'monday', label: 'Пн' },
-  { key: 'tuesday', label: 'Вт' },
-  { key: 'wednesday', label: 'Ср' },
-  { key: 'thursday', label: 'Чт' },
-  { key: 'friday', label: 'Пт' },
-  { key: 'saturday', label: 'Сб' },
-  { key: 'sunday', label: 'Вс' },
-]
+
+const DAYS = computed(() => DAY_KEYS.map((d) => ({ key: d.key, label: t(d.labelKey) })))
 
 function defaultState() {
   if (props.schedule) {
     const av = props.schedule.availability
-    const activeDays = DAYS.filter((d) => (av[d.key]?.length ?? 0) > 0).map((d) => d.key)
+    const activeDays = DAY_KEYS
+      .filter((d) => (av[d.key]?.length ?? 0) > 0)
+      .map((d) => d.key)
     const firstRange = Object.values(av).find((v): v is TimeRange[] => !!v && v.length > 0)?.[0]
     return {
       name: props.schedule.name,
@@ -61,6 +69,24 @@ function defaultState() {
 const form = ref(defaultState())
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const fieldErrors = ref<{ name: string | null; hours: string | null }>({ name: null, hours: null })
+
+function validate(): boolean {
+  let valid = true
+  if (!form.value.name.trim()) {
+    fieldErrors.value.name = t('schedule.validation.nameRequired')
+    valid = false
+  } else {
+    fieldErrors.value.name = null
+  }
+  if (Number(form.value.startHour) >= Number(form.value.endHour)) {
+    fieldErrors.value.hours = t('schedule.validation.hoursOrder')
+    valid = false
+  } else {
+    fieldErrors.value.hours = null
+  }
+  return valid
+}
 
 watch(() => props.schedule, () => { form.value = defaultState() })
 
@@ -81,7 +107,7 @@ function toggleDay(key: keyof WeeklyAvailability) {
 
 function buildAvailability(): WeeklyAvailability {
   const av: WeeklyAvailability = {}
-  for (const day of DAYS) {
+  for (const day of DAY_KEYS) {
     av[day.key] = form.value.activeDays.includes(day.key)
       ? [{ start: `${form.value.startHour.padStart(2, '0')}:00`, end: `${form.value.endHour.padStart(2, '0')}:00` }]
       : []
@@ -90,6 +116,7 @@ function buildAvailability(): WeeklyAvailability {
 }
 
 async function submit() {
+  if (!validate()) return
   error.value = null
   isLoading.value = true
   try {
@@ -112,7 +139,7 @@ async function submit() {
     }
     emit('done')
   } catch {
-    error.value = 'Ошибка при сохранении. Попробуйте снова.'
+    error.value = t('schedule.form.saveError')
   } finally {
     isLoading.value = false
   }
@@ -123,18 +150,19 @@ async function submit() {
   <form class="space-y-4" @submit.prevent="submit">
     <!-- Name -->
     <div class="space-y-1.5">
-      <Label for="name">Название *</Label>
-      <Input id="name" v-model="form.name" placeholder="Консультация" required />
+      <Label for="name">{{ t('schedule.form.name') }}</Label>
+      <Input id="name" v-model="form.name" :placeholder="t('schedule.form.namePlaceholder')" />
+      <p v-if="fieldErrors.name" class="text-sm text-destructive">{{ fieldErrors.name }}</p>
     </div>
 
     <!-- Slug + Duration -->
     <div class="grid grid-cols-2 gap-3">
       <div class="space-y-1.5">
-        <Label for="slug">Slug</Label>
-        <Input id="slug" v-model="form.slug" placeholder="konsultatsiya" />
+        <Label for="slug">{{ t('schedule.form.slug') }}</Label>
+        <Input id="slug" v-model="form.slug" :placeholder="t('schedule.form.slugPlaceholder')" />
       </div>
       <div class="space-y-1.5">
-        <Label for="duration">Длительность (мин)</Label>
+        <Label for="duration">{{ t('schedule.form.duration') }}</Label>
         <Select
           id="duration"
           v-model="form.duration"
@@ -145,11 +173,11 @@ async function submit() {
 
     <!-- Description -->
     <div class="space-y-1.5">
-      <Label for="description">Описание</Label>
+      <Label for="description">{{ t('schedule.form.description') }}</Label>
       <textarea
         id="description"
         v-model="form.description"
-        placeholder="Опишите событие..."
+        :placeholder="t('schedule.form.descriptionPlaceholder')"
         rows="3"
         class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none resize-none"
       />
@@ -157,7 +185,7 @@ async function submit() {
 
     <!-- Color -->
     <div class="space-y-1.5">
-      <Label>Цвет</Label>
+      <Label>{{ t('schedule.form.color') }}</Label>
       <div class="flex gap-2">
         <button
           v-for="color in COLORS"
@@ -173,7 +201,7 @@ async function submit() {
 
     <!-- Days -->
     <div class="space-y-1.5">
-      <Label>Дни приёма</Label>
+      <Label>{{ t('schedule.form.days') }}</Label>
       <div class="flex gap-1.5 flex-wrap">
         <button
           v-for="day in DAYS"
@@ -195,22 +223,23 @@ async function submit() {
     <!-- Time range -->
     <div class="grid grid-cols-2 gap-3">
       <div class="space-y-1.5">
-        <Label for="start">Начало (час)</Label>
+        <Label for="start">{{ t('schedule.form.startHour') }}</Label>
         <Input id="start" v-model="form.startHour" type="number" min="0" max="23" placeholder="9" />
       </div>
       <div class="space-y-1.5">
-        <Label for="end">Конец (час)</Label>
+        <Label for="end">{{ t('schedule.form.endHour') }}</Label>
         <Input id="end" v-model="form.endHour" type="number" min="1" max="24" placeholder="17" />
       </div>
     </div>
+    <p v-if="fieldErrors.hours" class="text-sm text-destructive">{{ fieldErrors.hours }}</p>
 
     <p v-if="error" class="text-base text-destructive">{{ error }}</p>
 
     <!-- Actions -->
     <div class="flex justify-end gap-2 pt-2">
-      <Button type="button" variant="outline" @click="emit('cancel')">Отмена</Button>
+      <Button type="button" variant="outline" @click="emit('cancel')">{{ t('common.cancel') }}</Button>
       <Button type="submit" :disabled="isLoading">
-        {{ isLoading ? 'Сохранение...' : (schedule ? 'Сохранить' : 'Создать') }}
+        {{ isLoading ? t('schedule.form.submitting') : (schedule ? t('schedule.form.submitSave') : t('schedule.form.submitCreate')) }}
       </Button>
     </div>
   </form>

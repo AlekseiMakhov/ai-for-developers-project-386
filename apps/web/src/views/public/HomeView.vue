@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/button/Button.vue'
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -17,17 +20,17 @@ import Button from '@/components/ui/button/Button.vue'
       </div>
       <h1 class="text-4xl font-bold tracking-tight text-foreground">SlotBook</h1>
       <p class="text-lg text-muted-foreground leading-relaxed">
-        Удобный сервис онлайн-записи. Выберите специалиста, удобное время и забронируйте встречу в несколько кликов — без регистрации.
+        {{ t('public.home.tagline') }}
       </p>
     </div>
 
     <!-- CTA -->
     <div class="flex flex-col sm:flex-row gap-3">
       <Button as-child size="lg" class="text-base px-8">
-        <RouterLink to="/hosts">Забронировать встречу</RouterLink>
+        <RouterLink to="/hosts">{{ t('public.home.bookBtn') }}</RouterLink>
       </Button>
       <Button as-child size="lg" variant="outline" class="text-base px-8">
-        <RouterLink to="/login">Войти как специалист</RouterLink>
+        <RouterLink to="/login">{{ t('public.home.loginBtn') }}</RouterLink>
       </Button>
     </div>
 
@@ -40,8 +43,8 @@ import Button from '@/components/ui/button/Button.vue'
             <polyline points="12 6 12 12 16 14" />
           </svg>
         </div>
-        <h3 class="font-semibold text-foreground">Быстрое бронирование</h3>
-        <p class="text-sm text-muted-foreground">Выберите слот и заполните форму — запись займёт меньше минуты.</p>
+        <h3 class="font-semibold text-foreground">{{ t('public.home.feature1Title') }}</h3>
+        <p class="text-sm text-muted-foreground">{{ t('public.home.feature1Desc') }}</p>
       </div>
       <div class="rounded-xl border border-border p-5 flex flex-col gap-2">
         <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -52,8 +55,8 @@ import Button from '@/components/ui/button/Button.vue'
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
         </div>
-        <h3 class="font-semibold text-foreground">Разные специалисты</h3>
-        <p class="text-sm text-muted-foreground">Широкий выбор специалистов с гибким расписанием.</p>
+        <h3 class="font-semibold text-foreground">{{ t('public.home.feature2Title') }}</h3>
+        <p class="text-sm text-muted-foreground">{{ t('public.home.feature2Desc') }}</p>
       </div>
       <div class="rounded-xl border border-border p-5 flex flex-col gap-2">
         <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -62,8 +65,8 @@ import Button from '@/components/ui/button/Button.vue'
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
         </div>
-        <h3 class="font-semibold text-foreground">Без регистрации</h3>
-        <p class="text-sm text-muted-foreground">Гостям не нужен аккаунт — просто укажите имя и email.</p>
+        <h3 class="font-semibold text-foreground">{{ t('public.home.feature3Title') }}</h3>
+        <p class="text-sm text-muted-foreground">{{ t('public.home.feature3Desc') }}</p>
       </div>
     </div>
   </div>

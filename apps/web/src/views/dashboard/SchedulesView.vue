@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useScheduleStore } from '@/stores/schedule'
 import { useAuthStore } from '@/stores/auth'
 import Button from '@/components/ui/button/Button.vue'
@@ -11,6 +12,7 @@ import type { Schedule } from '@/types'
 
 const scheduleStore = useScheduleStore()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const showCreateDialog = ref(false)
 const editingSchedule = ref<Schedule | null>(null)
@@ -63,29 +65,27 @@ function closeDeleteDialog() {
     <!-- Page header -->
     <div class="flex items-start justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Типы событий</h1>
-        <p class="text-base text-muted-foreground mt-1">
-          Создавайте типы событий и делитесь ссылкой для бронирования
-        </p>
+        <h1 class="text-2xl font-bold text-foreground">{{ t('schedule.title') }}</h1>
+        <p class="text-base text-muted-foreground mt-1">{{ t('schedule.subtitle') }}</p>
       </div>
       <Button @click="openCreate" class="gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
         </svg>
-        Новое событие
+        {{ t('schedule.newEvent') }}
       </Button>
     </div>
 
     <!-- Loading -->
-    <div v-if="scheduleStore.isLoading" class="text-muted-foreground text-base">Загрузка...</div>
+    <div v-if="scheduleStore.isLoading" class="text-muted-foreground text-base">{{ t('common.loading') }}</div>
 
     <!-- Empty state -->
     <div
       v-else-if="scheduleStore.schedules.length === 0"
       class="text-center py-16 text-muted-foreground"
     >
-      <p class="text-xl font-medium">Пока нет событий</p>
-      <p class="text-base mt-1">Нажмите «Новое событие», чтобы создать первый тип</p>
+      <p class="text-xl font-medium">{{ t('schedule.noEvents') }}</p>
+      <p class="text-base mt-1">{{ t('schedule.noEventsHint') }}</p>
     </div>
 
     <!-- Schedule grid -->
@@ -105,7 +105,7 @@ function closeDeleteDialog() {
   <!-- Create / Edit dialog -->
   <Dialog
     :open="showCreateDialog"
-    :title="editingSchedule ? 'Редактировать событие' : 'Новое событие'"
+    :title="editingSchedule ? t('schedule.editTitle') : t('schedule.createTitle')"
     size="lg"
     @update:open="showCreateDialog = $event"
   >
@@ -119,23 +119,21 @@ function closeDeleteDialog() {
   <!-- Delete confirmation dialog -->
   <Dialog
     :open="!!deletingSchedule"
-    title="Удалить событие"
+    :title="t('schedule.deleteTitle')"
     @update:open="closeDeleteDialog"
   >
     <div class="space-y-4">
       <p class="text-base text-foreground">
-        Вы уверены, что хотите удалить
-        <span class="font-medium">«{{ deletingSchedule?.name }}»</span>?
-        Это действие нельзя отменить.
+        {{ t('schedule.deleteConfirm', { name: deletingSchedule?.name }) }}
       </p>
       <div class="flex justify-end gap-2">
-        <Button variant="outline" @click="deletingSchedule = null">Отмена</Button>
+        <Button variant="outline" @click="deletingSchedule = null">{{ t('common.cancel') }}</Button>
         <Button
           variant="destructive"
           data-testid="confirm-delete-btn"
           @click="confirmDelete"
         >
-          Удалить
+          {{ t('common.delete') }}
         </Button>
       </div>
     </div>
@@ -144,7 +142,7 @@ function closeDeleteDialog() {
   <!-- Cannot delete: has bookings -->
   <Dialog
     :open="!!blockedSchedule"
-    title="Невозможно удалить событие"
+    :title="t('schedule.cannotDeleteTitle')"
     @update:open="blockedSchedule = null"
   >
     <div class="space-y-4">
@@ -163,12 +161,11 @@ function closeDeleteDialog() {
           />
         </svg>
         <p class="text-base text-foreground">
-          Событие <span class="font-medium">«{{ blockedSchedule?.name }}»</span> нельзя удалить —
-          на него есть бронирования. Деактивируйте его, чтобы закрыть запись.
+          {{ t('schedule.cannotDeleteMsg', { name: blockedSchedule?.name }) }}
         </p>
       </div>
       <div class="flex justify-end">
-        <Button @click="blockedSchedule = null">Понятно</Button>
+        <Button @click="blockedSchedule = null">{{ t('common.ok') }}</Button>
       </div>
     </div>
   </Dialog>

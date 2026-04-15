@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Schedule } from '@/types'
 import Button from '@/components/ui/button/Button.vue'
+import Tooltip from '@/components/ui/tooltip/Tooltip.vue'
 import { useToast } from '@/composables/useToast'
 
 const props = defineProps<{
@@ -14,12 +16,13 @@ const emit = defineEmits<{
   toggle: []
 }>()
 
+const { t } = useI18n()
 const publicUrl = `${window.location.origin}/book/${props.userSlug}/schedules/${props.schedule.id}/slots`
 const toast = useToast()
 
 function copyLink() {
   navigator.clipboard.writeText(publicUrl)
-  toast.show('Ссылка скопирована', publicUrl)
+  toast.show(t('schedule.card.linkCopied'), publicUrl)
 }
 
 async function shareLink() {
@@ -27,7 +30,7 @@ async function shareLink() {
     try {
       await navigator.share({
         title: props.schedule.name,
-        text: `Запишитесь на ${props.schedule.name}`,
+        text: t('schedule.card.shareText', { name: props.schedule.name }),
         url: publicUrl,
       })
     } catch {
@@ -36,7 +39,7 @@ async function shareLink() {
   } else {
     // fallback: copy to clipboard
     navigator.clipboard.writeText(publicUrl)
-    toast.show('Ссылка скопирована', publicUrl)
+    toast.show(t('schedule.card.linkCopied'), publicUrl)
   }
 }
 </script>
@@ -57,23 +60,24 @@ async function shareLink() {
             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {{ schedule.duration }} мин
+            {{ schedule.duration }} {{ t('common.min') }}
           </p>
         </div>
       </div>
 
       <!-- Toggle -->
-      <button
-        class="flex-shrink-0 w-9 h-5 rounded-full transition-colors relative"
-        :class="schedule.isActive ? 'bg-primary' : 'bg-muted'"
-        :title="schedule.isActive ? 'Деактивировать' : 'Активировать'"
-        @click="emit('toggle')"
-      >
-        <span
-          class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
-          :class="schedule.isActive ? 'translate-x-4 left-0.5' : 'translate-x-0 left-0.5'"
-        />
-      </button>
+      <Tooltip :text="schedule.isActive ? t('schedule.card.deactivate') : t('schedule.card.activate')">
+        <button
+          class="flex-shrink-0 w-9 h-5 rounded-full transition-colors relative"
+          :class="schedule.isActive ? 'bg-primary' : 'bg-muted'"
+          @click="emit('toggle')"
+        >
+          <span
+            class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
+            :class="schedule.isActive ? 'translate-x-4 left-0.5' : 'translate-x-0 left-0.5'"
+          />
+        </button>
+      </Tooltip>
     </div>
 
     <!-- Description -->
@@ -87,13 +91,13 @@ async function shareLink() {
         <svg class="w-7 h-7 flex-shrink-0 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
-        <span class="hidden lg:inline">Копировать</span>
+        <span class="hidden lg:inline">{{ t('schedule.card.copy') }}</span>
       </Button>
       <Button variant="ghost" class="h-11 w-11 p-0 lg:h-9 lg:w-auto lg:px-2.5 gap-1.5 text-sm" @click="shareLink">
         <svg class="w-7 h-7 flex-shrink-0 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
         </svg>
-        <span class="hidden lg:inline">Поделиться</span>
+        <span class="hidden lg:inline">{{ t('schedule.card.share') }}</span>
       </Button>
       <div class="ml-auto flex gap-1 flex-shrink-0">
         <Button variant="ghost" size="icon" class="w-11 h-11 lg:w-9 lg:h-9" @click="emit('edit')">
