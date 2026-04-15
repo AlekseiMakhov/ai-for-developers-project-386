@@ -18,7 +18,7 @@ const { t } = useI18n()
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
       </div>
-      <h1 class="text-4xl font-bold tracking-tight text-foreground">SlotBook</h1>
+      <h1 class="text-4xl font-bold tracking-tight text-foreground">Slotbook</h1>
       <p class="text-lg text-muted-foreground leading-relaxed">
         {{ t('public.home.tagline') }}
       </p>
