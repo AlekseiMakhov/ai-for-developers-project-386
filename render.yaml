@@ -10,7 +10,6 @@ services:
     rootDir: apps/api
     buildCommand: pip install -r requirements.txt
     startCommand: alembic upgrade head && python scripts/seed.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    plan: free
     branch: main
     envVars:
       - key: DATABASE_URL
