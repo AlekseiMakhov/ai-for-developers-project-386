@@ -1,8 +1,17 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://user:password@db:5432/booking"
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def fix_database_url(cls, v: str) -> str:
+        # Render (and Heroku) provide postgresql:// — asyncpg needs postgresql+asyncpg://
+        if isinstance(v, str) and v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
     secret_key: str = "supersecretkey-change-in-production"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
