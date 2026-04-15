@@ -12,7 +12,8 @@
     "type-check": "vue-tsc --build",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
-    "lint:eslint": "eslint . --fix --cache"
+    "lint:eslint": "eslint . --fix --cache",
+    "generate-pwa-assets": "pwa-assets-generator --config pwa-assets.config.ts"
   },
   "dependencies": {
     "@tanstack/vue-query": "5.99.0",
@@ -32,6 +33,7 @@
     "@playwright/test": "1.59.1",
     "@tsconfig/node24": "24.0.4",
     "@types/node": "24.12.2",
+    "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-vue": "6.0.5",
     "@vue/eslint-config-typescript": "14.7.0",
     "@vue/tsconfig": "0.9.1",
@@ -46,9 +48,10 @@
     "tailwindcss": "3.4.19",
     "typescript": "6.0.2",
     "vite": "8.0.8",
+    "vite-plugin-pwa": "^1.2.0",
     "vue-tsc": "3.2.6"
   },
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^24.0.0 || >=24.0.0"
   }
 }
