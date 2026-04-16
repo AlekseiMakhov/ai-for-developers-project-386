@@ -49,10 +49,10 @@ const { t } = useI18n()
       <div class="rounded-xl border border-border p-5 flex flex-col gap-2">
         <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
           <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            <circle cx="10" cy="7" r="4" />
+            <path d="M4 21v-2a4 4 0 0 1 4-4h4" />
+            <line x1="19" y1="11" x2="19" y2="17" />
+            <line x1="16" y1="14" x2="22" y2="14" />
           </svg>
         </div>
         <h3 class="font-semibold text-foreground">{{ t('public.home.feature2Title') }}</h3>
