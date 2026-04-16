@@ -85,17 +85,17 @@ const statusLabel = computed(() => {
           <span class="text-muted-foreground">{{ t('public.confirm.dateTime') }}</span>
           <span class="font-medium">{{ formatDateTime(booking?.slotStartAt) }}</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-muted-foreground">{{ t('public.confirm.name') }}</span>
-          <span class="font-medium">{{ booking?.guestName }}</span>
+        <div class="flex justify-between gap-2">
+          <span class="text-muted-foreground shrink-0">{{ t('public.confirm.name') }}</span>
+          <span class="font-medium truncate text-right">{{ booking?.guestName }}</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-muted-foreground">{{ t('common.email') }}</span>
-          <span class="font-medium">{{ booking?.guestEmail }}</span>
+        <div class="flex justify-between gap-2">
+          <span class="text-muted-foreground shrink-0">{{ t('common.email') }}</span>
+          <span class="font-medium truncate text-right">{{ booking?.guestEmail }}</span>
         </div>
-        <div v-if="booking?.guestNote" class="flex justify-between">
-          <span class="text-muted-foreground">{{ t('public.confirm.note') }}</span>
-          <span class="font-medium">{{ booking.guestNote }}</span>
+        <div v-if="booking?.guestNote" class="flex justify-between gap-2">
+          <span class="text-muted-foreground shrink-0">{{ t('public.confirm.note') }}</span>
+          <span class="font-medium break-words min-w-0 text-right">{{ booking.guestNote }}</span>
         </div>
         <div class="flex justify-between">
           <span class="text-muted-foreground">{{ t('public.confirm.status') }}</span>

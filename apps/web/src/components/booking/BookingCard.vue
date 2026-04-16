@@ -41,19 +41,14 @@ function formatTime(iso: string | undefined): string {
 
     <!-- Main info -->
     <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2 flex-wrap">
-        <p :class="['font-semibold text-base truncate', booking.status === 'cancelled' || booking.status === 'past' ? 'text-muted-foreground' : 'text-foreground']">{{ booking.guestName }}</p>
-        <BookingStatusBadge :status="booking.status" />
+      <div class="flex items-center gap-2 min-w-0">
+        <p :class="['font-semibold text-base truncate min-w-0', booking.status === 'cancelled' || booking.status === 'past' ? 'text-muted-foreground' : 'text-foreground']">{{ booking.guestName }}</p>
+        <BookingStatusBadge :status="booking.status" class="shrink-0" />
       </div>
       <p class="text-sm text-muted-foreground truncate mt-0.5">{{ booking.guestEmail }}</p>
-      <p v-if="booking.scheduleName" class="text-sm text-muted-foreground mt-0.5">
+      <p v-if="booking.scheduleName" class="text-sm text-muted-foreground truncate mt-0.5">
         {{ booking.scheduleName }} &middot; {{ formatTime(booking.slotStartAt) }} – {{ formatTime(booking.slotEndAt) }}
       </p>
     </div>
-
-    <!-- Arrow -->
-    <svg class="w-6 h-6 sm:w-5 sm:h-5 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
-    </svg>
   </div>
 </template>

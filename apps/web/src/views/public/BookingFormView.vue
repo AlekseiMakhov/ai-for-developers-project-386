@@ -21,18 +21,28 @@ const guestEmail = ref('')
 const guestNote = ref('')
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
-const fieldErrors = ref<{ name: string | null; email: string | null }>({ name: null, email: null })
+const fieldErrors = ref<{ name: string | null; email: string | null; note: string | null }>({
+  name: null,
+  email: null,
+  note: null,
+})
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// RFC 5322 simplified — matches backend Pydantic EmailStr behavior
+const EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/
 
 function validate(): boolean {
   let valid = true
+
   if (!guestName.value.trim()) {
     fieldErrors.value.name = t('public.bookingForm.nameRequired')
+    valid = false
+  } else if (guestName.value.trim().length > 30) {
+    fieldErrors.value.name = t('public.bookingForm.nameTooLong')
     valid = false
   } else {
     fieldErrors.value.name = null
   }
+
   if (!guestEmail.value.trim()) {
     fieldErrors.value.email = t('public.bookingForm.emailRequired')
     valid = false
@@ -42,6 +52,14 @@ function validate(): boolean {
   } else {
     fieldErrors.value.email = null
   }
+
+  if (guestNote.value.length > 50) {
+    fieldErrors.value.note = t('public.bookingForm.noteTooLong')
+    valid = false
+  } else {
+    fieldErrors.value.note = null
+  }
+
   return valid
 }
 
@@ -126,6 +144,7 @@ async function submit() {
           id="guest-name"
           v-model="guestName"
           :placeholder="t('public.bookingForm.guestNamePlaceholder')"
+          maxlength="30"
         />
         <p v-if="fieldErrors.name" class="text-sm text-destructive">{{ fieldErrors.name }}</p>
       </div>
@@ -147,7 +166,9 @@ async function submit() {
           id="guest-note"
           v-model="guestNote"
           :placeholder="t('public.bookingForm.guestNotePlaceholder')"
+          maxlength="50"
         />
+        <p v-if="fieldErrors.note" class="text-sm text-destructive">{{ fieldErrors.note }}</p>
       </div>
 
       <p v-if="error" class="text-sm text-red-500">{{ error }}</p>

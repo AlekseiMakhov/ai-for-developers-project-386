@@ -47,13 +47,15 @@
       "submitting": "Creating...",
       "haveAccount": "Already have an account?",
       "loginLink": "Sign in",
-      "serverError": "Registration failed. Please check your data and try again."
+      "serverError": "Registration failed. Please check your data and try again.",
+      "emailExists": "A user with this email is already registered"
     },
     "validation": {
       "invalidEmail": "Enter a valid email",
       "minChars2": "At least 2 characters",
       "minChars3": "At least 3 characters",
       "minChars6": "At least 6 characters",
+      "maxChars30": "Maximum 30 characters",
       "slugFormat": "Lowercase letters, numbers and hyphens only"
     }
   },
@@ -79,8 +81,8 @@
       "descriptionPlaceholder": "Describe the event...",
       "color": "Color",
       "days": "Working days",
-      "startHour": "Start (hour)",
-      "endHour": "End (hour)",
+      "startTime": "Working hours, from",
+      "endTime": "to",
       "saveError": "Error saving. Please try again.",
       "submitSave": "Save",
       "submitCreate": "Create",
@@ -88,7 +90,8 @@
     },
     "validation": {
       "nameRequired": "Event name is required",
-      "hoursOrder": "Start hour must be earlier than end hour"
+      "hoursOrder": "Start hour must be earlier than end hour",
+      "timeOrder": "Start time must be earlier than end time"
     },
     "card": {
       "deactivate": "Deactivate",
@@ -211,7 +214,9 @@
       "emailRequired": "Please enter your email",
       "emailInvalid": "Enter a valid email address",
       "conflictError": "This slot is already booked, please choose another time",
-      "genericError": "An error occurred, please try again"
+      "genericError": "An error occurred, please try again",
+      "nameTooLong": "Name must not exceed 30 characters",
+      "noteTooLong": "Note must not exceed 50 characters"
     },
     "confirm": {
       "processing": "Processing...",

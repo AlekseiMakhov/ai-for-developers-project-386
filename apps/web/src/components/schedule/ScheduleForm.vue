@@ -12,7 +12,7 @@ const props = defineProps<{ schedule: Schedule | null }>()
 const emit = defineEmits<{ done: []; cancel: [] }>()
 
 const scheduleStore = useScheduleStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#f97316']
 
@@ -36,6 +36,13 @@ const DAY_KEYS: { key: keyof WeeklyAvailability; labelKey: string }[] = [
 
 const DAYS = computed(() => DAY_KEYS.map((d) => ({ key: d.key, label: t(d.labelKey) })))
 
+const is24h = computed(() => locale.value === 'ru')
+
+function parseHhmm(hhmm: string): { h: number; m: number } {
+  const [h = '9', m = '0'] = hhmm.split(':')
+  return { h: parseInt(h), m: parseInt(m) }
+}
+
 function defaultState() {
   if (props.schedule) {
     const av = props.schedule.availability
@@ -43,6 +50,8 @@ function defaultState() {
       .filter((d) => (av[d.key]?.length ?? 0) > 0)
       .map((d) => d.key)
     const firstRange = Object.values(av).find((v): v is TimeRange[] => !!v && v.length > 0)?.[0]
+    const start = parseHhmm(firstRange?.start ?? '09:00')
+    const end = parseHhmm(firstRange?.end ?? '17:00')
     return {
       name: props.schedule.name,
       slug: props.schedule.slug,
@@ -50,8 +59,10 @@ function defaultState() {
       description: props.schedule.description ?? '',
       color: props.schedule.color ?? COLORS[0],
       activeDays,
-      startHour: firstRange?.start.split(':')[0] ?? '9',
-      endHour: firstRange?.end.split(':')[0] ?? '17',
+      startH: start.h,
+      startM: start.m,
+      endH: end.h,
+      endM: end.m,
     }
   }
   return {
@@ -61,15 +72,46 @@ function defaultState() {
     description: '',
     color: COLORS[0],
     activeDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as (keyof WeeklyAvailability)[],
-    startHour: '9',
-    endHour: '17',
+    startH: 9,
+    startM: 0,
+    endH: 17,
+    endM: 0,
   }
 }
 
 const form = ref(defaultState())
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const fieldErrors = ref<{ name: string | null; hours: string | null }>({ name: null, hours: null })
+const fieldErrors = ref<{ name: string | null; time: string | null }>({ name: null, time: null })
+
+// 12h helpers
+function to12(h24: number) { return h24 === 0 ? 12 : h24 > 12 ? h24 - 12 : h24 }
+function getAmPm(h24: number): 'AM' | 'PM' { return h24 >= 12 ? 'PM' : 'AM' }
+function to24(h12: number, ampm: 'AM' | 'PM') {
+  if (ampm === 'AM') return h12 === 12 ? 0 : h12
+  return h12 === 12 ? 12 : h12 + 12
+}
+
+function setHour(field: 'startH' | 'endH', raw: string) {
+  const v = parseInt(raw) || 0
+  if (is24h.value) {
+    form.value[field] = Math.min(23, Math.max(0, v))
+  } else {
+    const ampm = getAmPm(form.value[field])
+    form.value[field] = to24(Math.min(12, Math.max(1, v)), ampm)
+  }
+}
+
+function setMin(field: 'startM' | 'endM', raw: string) {
+  form.value[field] = Math.min(59, Math.max(0, parseInt(raw) || 0))
+}
+
+function toggleAmPm(field: 'startH' | 'endH') {
+  const h = form.value[field]
+  form.value[field] = h >= 12 ? h - 12 : h + 12
+}
+
+function fmt2(n: number) { return String(n).padStart(2, '0') }
 
 function validate(): boolean {
   let valid = true
@@ -79,11 +121,13 @@ function validate(): boolean {
   } else {
     fieldErrors.value.name = null
   }
-  if (Number(form.value.startHour) >= Number(form.value.endHour)) {
-    fieldErrors.value.hours = t('schedule.validation.hoursOrder')
+  const startTotal = form.value.startH * 60 + form.value.startM
+  const endTotal = form.value.endH * 60 + form.value.endM
+  if (startTotal >= endTotal) {
+    fieldErrors.value.time = t('schedule.validation.timeOrder')
     valid = false
   } else {
-    fieldErrors.value.hours = null
+    fieldErrors.value.time = null
   }
   return valid
 }
@@ -109,7 +153,7 @@ function buildAvailability(): WeeklyAvailability {
   const av: WeeklyAvailability = {}
   for (const day of DAY_KEYS) {
     av[day.key] = form.value.activeDays.includes(day.key)
-      ? [{ start: `${form.value.startHour.padStart(2, '0')}:00`, end: `${form.value.endHour.padStart(2, '0')}:00` }]
+      ? [{ start: `${fmt2(form.value.startH)}:${fmt2(form.value.startM)}`, end: `${fmt2(form.value.endH)}:${fmt2(form.value.endM)}` }]
       : []
   }
   return av
@@ -149,7 +193,7 @@ async function submit() {
     <!-- Name -->
     <div class="space-y-1.5">
       <Label for="name">{{ t('schedule.form.name') }}</Label>
-      <Input id="name" v-model="form.name" :placeholder="t('schedule.form.namePlaceholder')" />
+      <Input id="name" v-model="form.name" :placeholder="t('schedule.form.namePlaceholder')" maxlength="30" />
       <p v-if="fieldErrors.name" class="text-sm text-destructive">{{ fieldErrors.name }}</p>
     </div>
 
@@ -161,11 +205,7 @@ async function submit() {
       </div>
       <div class="space-y-1.5">
         <Label for="duration">{{ t('schedule.form.duration') }}</Label>
-        <Select
-          id="duration"
-          v-model="form.duration"
-          :options="DURATION_OPTIONS"
-        />
+        <Select id="duration" v-model="form.duration" :options="DURATION_OPTIONS" />
       </div>
     </div>
 
@@ -184,14 +224,17 @@ async function submit() {
     <!-- Color -->
     <div class="space-y-1.5">
       <Label>{{ t('schedule.form.color') }}</Label>
-      <div class="flex gap-2">
+      <div class="flex gap-2.5">
         <button
           v-for="color in COLORS"
           :key="color"
           type="button"
-          class="w-8 h-8 rounded-full border-2 transition-all focus:outline-none"
-          :style="{ backgroundColor: color }"
-          :class="form.color === color ? 'border-sky-500 border-[3px] scale-110' : 'border-transparent'"
+          class="w-8 h-8 rounded-full focus:outline-none"
+          :style="{
+            backgroundColor: color,
+            outline: form.color === color ? `3px solid ${color}` : 'none',
+            outlineOffset: '2px',
+          }"
           @click="form.color = color"
         />
       </div>
@@ -220,16 +263,71 @@ async function submit() {
 
     <!-- Time range -->
     <div class="grid grid-cols-2 gap-3">
+      <!-- Start -->
       <div class="space-y-1.5">
-        <Label for="start">{{ t('schedule.form.startHour') }}</Label>
-        <Input id="start" v-model="form.startHour" type="number" min="0" max="23" placeholder="9" />
+        <Label>{{ t('schedule.form.startTime') }}</Label>
+        <div class="time-field flex h-11 w-full items-center rounded-md border border-input bg-background px-3 gap-1 text-base">
+          <input
+            :value="is24h ? fmt2(form.startH) : fmt2(to12(form.startH))"
+            type="number"
+            :min="is24h ? 0 : 1"
+            :max="is24h ? 23 : 12"
+            class="time-digit w-7 bg-transparent text-center focus:outline-none"
+            @change="setHour('startH', ($event.target as HTMLInputElement).value)"
+          />
+          <span class="text-muted-foreground select-none">:</span>
+          <input
+            :value="fmt2(form.startM)"
+            type="number"
+            min="0"
+            max="59"
+            class="time-digit w-7 bg-transparent text-center focus:outline-none"
+            @change="setMin('startM', ($event.target as HTMLInputElement).value)"
+          />
+          <button
+            v-if="!is24h"
+            type="button"
+            class="ml-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            @click="toggleAmPm('startH')"
+          >
+            {{ getAmPm(form.startH) }}
+          </button>
+        </div>
       </div>
+
+      <!-- End -->
       <div class="space-y-1.5">
-        <Label for="end">{{ t('schedule.form.endHour') }}</Label>
-        <Input id="end" v-model="form.endHour" type="number" min="1" max="24" placeholder="17" />
+        <Label>{{ t('schedule.form.endTime') }}</Label>
+        <div class="time-field flex h-11 w-full items-center rounded-md border border-input bg-background px-3 gap-1 text-base">
+          <input
+            :value="is24h ? fmt2(form.endH) : fmt2(to12(form.endH))"
+            type="number"
+            :min="is24h ? 0 : 1"
+            :max="is24h ? 23 : 12"
+            class="time-digit w-7 bg-transparent text-center focus:outline-none"
+            @change="setHour('endH', ($event.target as HTMLInputElement).value)"
+          />
+          <span class="text-muted-foreground select-none">:</span>
+          <input
+            :value="fmt2(form.endM)"
+            type="number"
+            min="0"
+            max="59"
+            class="time-digit w-7 bg-transparent text-center focus:outline-none"
+            @change="setMin('endM', ($event.target as HTMLInputElement).value)"
+          />
+          <button
+            v-if="!is24h"
+            type="button"
+            class="ml-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            @click="toggleAmPm('endH')"
+          >
+            {{ getAmPm(form.endH) }}
+          </button>
+        </div>
       </div>
     </div>
-    <p v-if="fieldErrors.hours" class="text-sm text-destructive">{{ fieldErrors.hours }}</p>
+    <p v-if="fieldErrors.time" class="text-sm text-destructive">{{ fieldErrors.time }}</p>
 
     <p v-if="error" class="text-base text-destructive">{{ error }}</p>
 
@@ -242,3 +340,14 @@ async function submit() {
     </div>
   </form>
 </template>
+
+<style scoped>
+/* Hide number input spinners */
+.time-digit::-webkit-inner-spin-button,
+.time-digit::-webkit-outer-spin-button {
+  appearance: none;
+}
+.time-digit {
+  -moz-appearance: textfield;
+}
+</style>
