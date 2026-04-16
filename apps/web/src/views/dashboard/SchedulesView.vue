@@ -62,14 +62,24 @@ function closeDeleteDialog() {
 
 <template>
   <div>
-    <!-- Page header -->
-    <div class="flex items-start justify-between mb-6">
-      <div>
-        <h1 class="text-2xl font-bold text-foreground">{{ t('schedule.title') }}</h1>
-        <p class="text-base text-muted-foreground mt-1">{{ t('schedule.subtitle') }}</p>
+    <!-- Sticky header -->
+    <div class="sticky top-0 z-[5] bg-background pb-3 border-b border-border">
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-foreground">{{ t('schedule.title') }}</h1>
+          <p class="text-base text-muted-foreground mt-1">{{ t('schedule.subtitle') }}</p>
+        </div>
+        <!-- Desktop: button beside title -->
+        <Button @click="openCreate" class="hidden sm:flex gap-2 flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
+          </svg>
+          {{ t('schedule.newEvent') }}
+        </Button>
       </div>
-      <Button @click="openCreate" class="gap-2">
-        <svg class="w-6 h-6 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Mobile: button below title -->
+      <Button @click="openCreate" class="sm:hidden w-full gap-2 mt-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
         </svg>
         {{ t('schedule.newEvent') }}
@@ -77,7 +87,7 @@ function closeDeleteDialog() {
     </div>
 
     <!-- Loading -->
-    <div v-if="scheduleStore.isLoading" class="text-muted-foreground text-base">{{ t('common.loading') }}</div>
+    <div v-if="scheduleStore.isLoading" class="text-muted-foreground text-base mt-4">{{ t('common.loading') }}</div>
 
     <!-- Empty state -->
     <div
@@ -89,7 +99,7 @@ function closeDeleteDialog() {
     </div>
 
     <!-- Schedule grid -->
-    <div v-else class="flex flex-wrap gap-4">
+    <div v-else class="flex flex-wrap gap-4 mt-4">
       <ScheduleCard
         v-for="schedule in scheduleStore.schedules"
         :key="schedule.id"

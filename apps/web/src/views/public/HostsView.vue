@@ -6,6 +6,8 @@ import { RouterLink } from 'vue-router'
 import { getHosts } from '@/api/bookings'
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import Card from '@/components/ui/card/Card.vue'
 import CardHeader from '@/components/ui/card/CardHeader.vue'
 import CardTitle from '@/components/ui/card/CardTitle.vue'
@@ -53,7 +55,7 @@ function scheduleCountText(n: number): string {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-6 py-8">
     <!-- Header -->
     <div class="flex flex-col gap-1">
       <h1 class="text-2xl font-bold text-foreground">{{ t('public.hosts.title') }}</h1>
@@ -131,9 +133,9 @@ function scheduleCountText(n: number): string {
           </p>
         </CardContent>
         <CardFooter>
-          <Button as-child class="w-full" size="sm">
-            <RouterLink :to="`/book/${host.slug}`">{{ t('public.hosts.bookBtn') }}</RouterLink>
-          </Button>
+          <RouterLink :to="`/book/${host.slug}`" :class="cn(buttonVariants({ size: 'sm' }), 'w-full text-center')">
+            {{ t('public.hosts.bookBtn') }}
+          </RouterLink>
         </CardFooter>
       </Card>
     </div>

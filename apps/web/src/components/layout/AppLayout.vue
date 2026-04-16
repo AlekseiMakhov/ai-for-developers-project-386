@@ -90,13 +90,13 @@ onMounted(() => {
 
     <!-- Page content -->
     <main class="flex-1 min-h-0 overflow-y-auto">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8 min-h-full flex flex-col">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-full flex flex-col">
         <RouterView />
       </div>
     </main>
 
-    <!-- Mobile bottom tab bar -->
-    <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-10 border-t border-border bg-background safe-area-bottom">
+    <!-- Mobile bottom tab bar (in-flow, not fixed) -->
+    <nav class="sm:hidden shrink-0 border-t border-border bg-background safe-area-bottom">
       <div class="flex justify-center gap-12 h-20 items-center">
         <RouterLink
           to="/dashboard"

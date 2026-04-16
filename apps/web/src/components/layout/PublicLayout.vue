@@ -20,9 +20,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background">
+  <div class="h-dvh flex flex-col bg-background">
     <!-- Sticky top bar -->
-    <header class="border-b border-border bg-background sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
+    <header class="shrink-0 border-b border-border bg-background sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-16 flex items-center justify-between">
         <RouterLink to="/" class="flex items-center gap-3 sm:gap-2 select-none">
           <div class="w-12 h-12 sm:w-9 sm:h-9 rounded-xl sm:rounded-md bg-primary flex items-center justify-center">
@@ -65,8 +65,10 @@ onMounted(() => {
       </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
-      <RouterView />
+    <main class="flex-1 min-h-0 overflow-y-auto">
+      <div class="max-w-4xl mx-auto px-4">
+        <RouterView />
+      </div>
     </main>
   </div>
 </template>

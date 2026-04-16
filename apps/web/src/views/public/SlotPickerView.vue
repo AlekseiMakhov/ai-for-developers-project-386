@@ -194,7 +194,7 @@ const WEEKDAYS = computed(() => [
 </script>
 
 <template>
-  <div>
+  <div class="py-8">
     <!-- Back link -->
     <button
       class="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"

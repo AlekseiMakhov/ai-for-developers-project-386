@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useBookingStore } from '@/stores/booking'
@@ -16,16 +16,24 @@ const store = useBookingStore()
 const { t } = useI18n()
 
 const slug = route.params.slug as string
+const navigatingId = ref<string | null>(null)
 
 onMounted(() => store.fetchProfile(slug))
 
-function selectSchedule(scheduleId: string) {
-  router.push({ name: 'public-slots', params: { slug, scheduleId } })
+async function selectSchedule(scheduleId: string) {
+  if (navigatingId.value) return
+  navigatingId.value = scheduleId
+  try {
+    await router.push({ name: 'public-slots', params: { slug, scheduleId } })
+  } finally {
+    navigatingId.value = null
+  }
 }
 </script>
 
 <template>
-  <div v-if="store.isLoading" class="text-muted-foreground text-base">{{ t('common.loading') }}</div>
+  <div class="py-8">
+  <div v-if="store.isLoading && !store.profile" class="text-muted-foreground text-base">{{ t('common.loading') }}</div>
 
   <div v-else-if="store.profile">
     <!-- Host info -->
@@ -82,7 +90,23 @@ function selectSchedule(scheduleId: string) {
               {{ schedule.timezone }}
             </span>
           </div>
-          <Button class="w-full mt-4" variant="outline">{{ t('public.profile.selectTime') }}</Button>
+          <Button
+            class="w-full mt-4 gap-2"
+            variant="outline"
+            :disabled="navigatingId === schedule.id"
+            @click.stop="selectSchedule(schedule.id)"
+          >
+            <svg
+              v-if="navigatingId === schedule.id"
+              class="w-4 h-4 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            {{ t('public.profile.selectTime') }}
+          </Button>
         </CardContent>
       </Card>
     </div>
@@ -90,5 +114,6 @@ function selectSchedule(scheduleId: string) {
 
   <div v-else class="text-center py-12 text-muted-foreground">
     <p class="text-lg font-medium">{{ t('public.profile.notFound') }}</p>
+  </div>
   </div>
 </template>
