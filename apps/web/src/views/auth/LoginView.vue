@@ -33,6 +33,7 @@ const [password, passwordAttrs] = defineField('password')
 
 const authStore = useAuthStore()
 const serverError = ref<string | null>(null)
+const demoLoading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
   serverError.value = null
@@ -42,10 +43,19 @@ const onSubmit = handleSubmit(async (values) => {
     serverError.value = t('auth.login.invalidCredentials')
   }
 })
+
+async function loginAsDemo() {
+  demoLoading.value = true
+  try {
+    await authStore.login({ email: 'john@example.com', password: 'changeme' })
+  } finally {
+    demoLoading.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+  <div class="center-page flex items-center justify-center px-4">
     <Card class="w-full max-w-md">
       <CardHeader>
         <CardTitle>{{ t('auth.login.title') }}</CardTitle>
@@ -82,7 +92,16 @@ const onSubmit = handleSubmit(async (values) => {
         </CardContent>
 
         <CardFooter class="flex flex-col gap-3">
-          <Button type="submit" class="w-full" :disabled="authStore.isLoading">
+          <Button type="submit" class="w-full gap-2" :disabled="authStore.isLoading">
+            <svg
+              v-if="authStore.isLoading"
+              class="w-4 h-4 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
             {{ authStore.isLoading ? t('auth.login.submitting') : t('auth.login.submitBtn') }}
           </Button>
 
@@ -103,9 +122,19 @@ const onSubmit = handleSubmit(async (values) => {
         </div>
 
         <button
-          class="w-full rounded-md border border-dashed border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-          @click="authStore.login({ email: 'john@example.com', password: 'changeme' })"
+          class="w-full rounded-md border border-dashed border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+          :disabled="demoLoading"
+          @click="loginAsDemo"
         >
+          <svg
+            v-if="demoLoading"
+            class="w-4 h-4 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
           {{ t('auth.login.demo') }}
         </button>
 
@@ -119,3 +148,14 @@ const onSubmit = handleSubmit(async (values) => {
     </Card>
   </div>
 </template>
+
+<style scoped>
+.center-page {
+  min-height: calc(100dvh - 5rem - env(safe-area-inset-top));
+}
+@media (min-width: 640px) {
+  .center-page {
+    min-height: calc(100dvh - 4rem - env(safe-area-inset-top));
+  }
+}
+</style>

@@ -17,6 +17,7 @@ const selectedBooking = ref<Booking | null>(null)
 const dialogOpen = ref(false)
 const cancellingBooking = ref<Booking | null>(null)
 const activeFilter = ref<BookingStatus>('confirmed')
+const actionLoading = ref(false)
 
 const filters = computed<{ label: string; value: BookingStatus }[]>(() => [
   { label: t('booking.filters.pending'), value: 'pending' },
@@ -44,12 +45,15 @@ function openDialog(booking: Booking) {
 }
 
 async function onConfirm(id: string) {
+  actionLoading.value = true
   try {
     await bookingStore.confirmBooking(id)
     dialogOpen.value = false
     toast.show(t('booking.toast.confirmed'))
   } catch {
     toast.show(t('common.error'), t('booking.toast.confirmError'))
+  } finally {
+    actionLoading.value = false
   }
 }
 
@@ -60,13 +64,15 @@ function onCancel(id: string) {
 
 async function confirmCancel() {
   if (!cancellingBooking.value) return
+  actionLoading.value = true
   try {
     await bookingStore.cancelBooking(cancellingBooking.value.id)
     toast.show(t('booking.toast.cancelled'))
+    cancellingBooking.value = null
   } catch {
     toast.show(t('common.error'), t('booking.toast.cancelError'))
   } finally {
-    cancellingBooking.value = null
+    actionLoading.value = false
   }
 }
 </script>
@@ -130,6 +136,7 @@ async function confirmCancel() {
   <BookingDialog
     :open="dialogOpen"
     :booking="selectedBooking"
+    :action-loading="actionLoading"
     @update:open="dialogOpen = $event"
     @confirm="onConfirm"
     @cancel="onCancel"
@@ -147,7 +154,18 @@ async function confirmCancel() {
       </p>
       <div class="flex justify-end gap-2">
         <Button variant="outline" @click="cancellingBooking = null">{{ t('common.back') }}</Button>
-        <Button variant="destructive" @click="confirmCancel">{{ t('booking.cancelBtn') }}</Button>
+        <Button variant="destructive" class="gap-2" :disabled="actionLoading" @click="confirmCancel">
+          <svg
+            v-if="actionLoading"
+            class="w-4 h-4 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          {{ t('booking.cancelBtn') }}
+        </Button>
       </div>
     </div>
   </Dialog>

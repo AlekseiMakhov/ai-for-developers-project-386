@@ -53,7 +53,7 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+  <div class="center-page flex items-center justify-center px-4">
     <Card class="w-full max-w-md">
       <CardHeader>
         <CardTitle>{{ t('auth.register.title') }}</CardTitle>
@@ -119,3 +119,14 @@ const onSubmit = handleSubmit(async (values) => {
     </Card>
   </div>
 </template>
+
+<style scoped>
+.center-page {
+  min-height: calc(100dvh - 5rem - env(safe-area-inset-top));
+}
+@media (min-width: 640px) {
+  .center-page {
+    min-height: calc(100dvh - 4rem - env(safe-area-inset-top));
+  }
+}
+</style>

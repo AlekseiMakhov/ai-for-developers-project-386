@@ -8,6 +8,7 @@ import BookingStatusBadge from './BookingStatusBadge.vue'
 const props = defineProps<{
   open: boolean
   booking: Booking | null
+  actionLoading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -75,18 +76,38 @@ function formatDateTime(iso: string | undefined): string {
       <div v-if="booking.status === 'pending' || booking.status === 'confirmed'" class="flex gap-2 pt-2 border-t border-border">
         <Button
           v-if="booking.status === 'pending'"
-          class="flex-1"
+          class="flex-1 gap-2"
+          :disabled="props.actionLoading"
           data-testid="confirm-booking-btn"
           @click="emit('confirm', booking.id)"
         >
+          <svg
+            v-if="props.actionLoading"
+            class="w-4 h-4 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
           {{ t('common.confirm') }}
         </Button>
         <Button
           variant="outline"
-          class="flex-1"
+          class="flex-1 gap-2"
+          :disabled="props.actionLoading"
           data-testid="cancel-booking-btn"
           @click="emit('cancel', booking.id)"
         >
+          <svg
+            v-if="props.actionLoading"
+            class="w-4 h-4 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
           {{ t('common.cancel') }}
         </Button>
       </div>

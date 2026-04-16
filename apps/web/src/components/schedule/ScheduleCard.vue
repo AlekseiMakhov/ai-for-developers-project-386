@@ -48,7 +48,7 @@ async function shareLink() {
   <div data-testid="schedule-card" class="relative bg-card border border-border rounded-lg overflow-hidden flex flex-col gap-4 p-5 transition-shadow hover:shadow-md w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)] lg:min-w-[350px]">
     <!-- Left color bar -->
     <div
-      class="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
+      class="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-lg"
       :style="{ backgroundColor: schedule.color ?? '#6366f1' }"
     />
     <!-- Header -->
