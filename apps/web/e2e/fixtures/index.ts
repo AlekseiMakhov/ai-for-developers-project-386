@@ -39,8 +39,6 @@ export async function createSchedule(
   const payload = {
     name: 'E2E Консультация',
     duration: 30,
-    bufferBefore: 0,
-    bufferAfter: 0,
     availability: {
       monday: [{ start: '09:00', end: '17:00' }],
       tuesday: [{ start: '09:00', end: '17:00' }],

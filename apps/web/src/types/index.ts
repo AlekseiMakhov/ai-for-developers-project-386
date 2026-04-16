@@ -48,8 +48,6 @@ export interface Schedule {
   name: string;
   description?: string;
   duration: number;
-  bufferBefore: number;
-  bufferAfter: number;
   availability: WeeklyAvailability;
   timezone: string;
   isActive: boolean;
@@ -61,8 +59,6 @@ export interface ScheduleCreate {
   name: string;
   description?: string;
   duration: number;
-  bufferBefore: number;
-  bufferAfter: number;
   availability: WeeklyAvailability;
   timezone: string;
   isActive: boolean;
@@ -74,8 +70,6 @@ export interface ScheduleUpdate {
   name?: string;
   description?: string;
   duration?: number;
-  bufferBefore?: number;
-  bufferAfter?: number;
   availability?: WeeklyAvailability;
   timezone?: string;
   isActive?: boolean;

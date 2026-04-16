@@ -38,8 +38,6 @@ async def create_schedule(
         name=payload.name,
         description=payload.description,
         duration=payload.duration,
-        buffer_before=payload.buffer_before,
-        buffer_after=payload.buffer_after,
         availability=payload.availability.model_dump(),
         timezone=payload.timezone,
         is_active=payload.is_active,

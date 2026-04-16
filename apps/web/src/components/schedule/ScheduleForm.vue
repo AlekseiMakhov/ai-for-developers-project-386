@@ -126,8 +126,6 @@ async function submit() {
       duration: Number(form.value.duration),
       description: form.value.description || undefined,
       color: form.value.color,
-      bufferBefore: 0,
-      bufferAfter: 0,
       availability: buildAvailability(),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       isActive: true,
