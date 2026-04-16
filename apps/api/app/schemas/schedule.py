@@ -23,8 +23,6 @@ class ScheduleCreate(CamelModel):
     name: str
     description: str | None = None
     duration: int
-    buffer_before: int = 0
-    buffer_after: int = 0
     availability: WeeklyAvailability
     timezone: str = "UTC"
     is_active: bool = True
@@ -36,8 +34,6 @@ class ScheduleUpdate(CamelModel):
     name: str | None = None
     description: str | None = None
     duration: int | None = None
-    buffer_before: int | None = None
-    buffer_after: int | None = None
     availability: WeeklyAvailability | None = None
     timezone: str | None = None
     is_active: bool | None = None
@@ -51,8 +47,6 @@ class ScheduleResponse(CamelModel):
     name: str
     description: str | None = None
     duration: int
-    buffer_before: int
-    buffer_after: int
     availability: WeeklyAvailability
     timezone: str
     is_active: bool

@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import delete, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,23 +23,25 @@ def _generate_slots_for_day(
     day: date,
     time_ranges: list[dict],
     duration: int,
-    buffer_before: int,
-    buffer_after: int,
+    tz_name: str = "UTC",
 ) -> list[Slot]:
     slots: list[Slot] = []
+    tz = ZoneInfo(tz_name)
 
     for tr in time_ranges:
         start_h, start_m = _parse_time(tr["start"])
         end_h, end_m = _parse_time(tr["end"])
 
-        range_start = datetime(day.year, day.month, day.day, start_h, start_m, tzinfo=timezone.utc)
-        range_end = datetime(day.year, day.month, day.day, end_h, end_m, tzinfo=timezone.utc)
+        # Interpret availability times in the schedule's timezone, store slots in UTC
+        range_start = datetime(day.year, day.month, day.day, start_h, start_m, tzinfo=tz).astimezone(timezone.utc)
+        range_end = datetime(day.year, day.month, day.day, end_h, end_m, tzinfo=tz).astimezone(timezone.utc)
 
         current = range_start
         while True:
-            slot_start = current + timedelta(minutes=buffer_before)
+            slot_start = current
             slot_end = slot_start + timedelta(minutes=duration)
 
+            # Last slot must not end after the available range
             if slot_end > range_end:
                 break
 
@@ -51,7 +54,7 @@ def _generate_slots_for_day(
                     status="available",
                 )
             )
-            current = slot_end + timedelta(minutes=buffer_after)
+            current = slot_end
 
     return slots
 
@@ -89,8 +92,7 @@ async def regenerate_slots(db: AsyncSession, schedule: Schedule) -> None:
             day=day,
             time_ranges=time_ranges,
             duration=schedule.duration,
-            buffer_before=schedule.buffer_before,
-            buffer_after=schedule.buffer_after,
+            tz_name=schedule.timezone,
         )
 
         # For today only: skip slots that have already started
