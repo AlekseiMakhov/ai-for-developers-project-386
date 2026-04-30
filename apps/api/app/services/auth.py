@@ -1,3 +1,8 @@
+import hashlib
+import hmac
+import re
+import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -45,3 +50,62 @@ async def get_user_by_id(db: AsyncSession, user_id: str) -> User | None:
 async def get_user_by_slug(db: AsyncSession, slug: str) -> User | None:
     result = await db.execute(select(User).where(User.slug == slug))
     return result.scalar_one_or_none()
+
+
+async def get_user_by_google_id(db: AsyncSession, google_id: str) -> User | None:
+    result = await db.execute(select(User).where(User.google_id == google_id))
+    return result.scalar_one_or_none()
+
+
+async def get_or_create_google_user(
+    db: AsyncSession, google_id: str, email: str, name: str
+) -> User:
+    user = await get_user_by_google_id(db, google_id)
+    if user:
+        return user
+
+    user = await get_user_by_email(db, email)
+    if user:
+        user.google_id = google_id
+        await db.commit()
+        await db.refresh(user)
+        return user
+
+    slug = await _unique_slug(db, email.split("@")[0])
+    user = User(
+        id=str(uuid.uuid4()),
+        email=email,
+        name=name,
+        hashed_password=None,
+        google_id=google_id,
+        slug=slug,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+async def _unique_slug(db: AsyncSession, base: str) -> str:
+    slug = re.sub(r"[^a-z0-9-]", "-", base.lower())
+    candidate = slug
+    i = 1
+    while await get_user_by_slug(db, candidate):
+        candidate = f"{slug}-{i}"
+        i += 1
+    return candidate
+
+
+def generate_oauth_state() -> str:
+    token = secrets.token_urlsafe(32)
+    sig = hmac.new(settings.secret_key.encode(), token.encode(), hashlib.sha256).hexdigest()
+    return f"{token}.{sig}"
+
+
+def verify_oauth_state(state: str) -> bool:
+    try:
+        token, sig = state.rsplit(".", 1)
+        expected = hmac.new(settings.secret_key.encode(), token.encode(), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(sig, expected)
+    except Exception:
+        return False

@@ -628,6 +628,16 @@ Branch: `dev/phase-7-pwa`
 - `npm run generate-pwa-assets` — скрипт для регенерации иконок
 - CI/CD: Node.js 20 → 24
 
+### Phase 8 — Google OAuth Integration
+Branch: `dev/phase-8-google-oauth`
+- Backend: Google OAuth2 flow — `GET /auth/google` (redirect to Google consent screen), `GET /auth/google/callback` (exchange code for token, upsert user, issue JWT)
+- Use `authlib` or `httpx` to exchange authorization code; store `google_id` on User model (new migration)
+- If user with given email already exists — link Google account; if new — auto-register
+- Frontend: «Войти через Google» button on `LoginView.vue`; redirect to `/auth/google` on click
+- After successful OAuth callback, backend redirects to frontend with JWT in query param (or sets cookie); auth store picks it up and navigates to dashboard
+- E2E: mock Google OAuth in tests (intercept `/auth/google/callback` or use a test credential)
+- Required env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+
 ---
 
 ## Notes for Claude

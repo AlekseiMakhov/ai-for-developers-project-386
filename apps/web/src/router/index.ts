@@ -48,6 +48,11 @@ const router = createRouter({
           name: 'register',
           component: () => import('@/views/auth/RegisterView.vue'),
         },
+        {
+          path: 'auth/callback',
+          name: 'oauth-callback',
+          component: () => import('@/views/auth/OAuthCallbackView.vue'),
+        },
       ],
     },
 

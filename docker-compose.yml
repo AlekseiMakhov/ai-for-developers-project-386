@@ -25,6 +25,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://user:password@db:5432/booking
       SECRET_KEY: dev-secret-key-change-in-production
       FRONTEND_URL: http://localhost:5173
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
     ports:
       - "8000:8000"
     depends_on:
