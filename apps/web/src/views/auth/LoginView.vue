@@ -15,6 +15,7 @@ import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'
 import { RouterLink } from 'vue-router'
+import { BASE_URL } from '@/api/client'
 
 const { t } = useI18n()
 
@@ -122,7 +123,7 @@ async function loginAsDemo() {
         </div>
 
         <a
-          href="/api/auth/google"
+          :href="`${BASE_URL}/auth/google`"
           class="w-full rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors flex items-center justify-center gap-2"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
