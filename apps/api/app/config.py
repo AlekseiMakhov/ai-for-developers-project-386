@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     def cors_origins(self) -> list[str]:
         return [url.strip() for url in self.frontend_url.split(",") if url.strip()]
     slot_generation_days: int = 14
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/auth/google/callback"
 
     class Config:
         env_file = ".env"

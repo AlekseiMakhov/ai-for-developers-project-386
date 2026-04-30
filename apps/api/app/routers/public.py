@@ -15,7 +15,7 @@ from app.schemas.schedule import ScheduleResponse
 from app.schemas.slot import SlotResponse
 from app.schemas.user import UserResponse
 from app.services.booking import create_booking
-from app.services.slot import get_all_slots_for_date, get_dates_with_available_slots
+from app.services.slot import get_all_slots_for_date, get_dates_with_available_slots, regenerate_slots
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -166,9 +166,15 @@ async def get_schedule_available_dates(
     schedule_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """Return ISO date strings that have at least one available slot in the booking window."""
+    """Return ISO date strings that have at least one available slot in the booking window.
+
+    Regenerates slots on each call so the 14-day window always starts from today,
+    regardless of when the schedule was last updated.
+    """
     host = await _get_host_by_slug(db, slug)
-    await _get_active_schedule(db, slug, schedule_id, host.id)
+    schedule = await _get_active_schedule(db, slug, schedule_id, host.id)
+
+    await regenerate_slots(db, schedule)
 
     return await get_dates_with_available_slots(db, schedule_id, host.id)
 

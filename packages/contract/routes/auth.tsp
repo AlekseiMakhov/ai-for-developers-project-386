@@ -22,4 +22,12 @@ interface AuthRoutes {
   @get
   @route("/me")
   me(): User;
+
+  @get
+  @route("/google")
+  googleLogin(): void;
+
+  @get
+  @route("/google/callback")
+  googleCallback(@query code: string, @query state: string): void;
 }

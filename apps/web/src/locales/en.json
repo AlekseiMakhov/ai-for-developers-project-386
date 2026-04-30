@@ -31,6 +31,7 @@
       "noAccount": "No account?",
       "register": "Sign up",
       "or": "or",
+      "google": "Sign in with Google",
       "demo": "Demo account",
       "asGuest": "Continue as guest →",
       "invalidCredentials": "Invalid email or password"

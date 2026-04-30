@@ -299,6 +299,7 @@ const WEEKDAYS = computed(() => [
             <!-- Selectable: has available slots -->
             <button
               v-else-if="cell.state === 'has-slots'"
+              data-testid="calendar-day-available"
               :class="[
                 'w-full aspect-square rounded-md text-sm font-medium transition-colors',
                 selectedDateStr === cell.iso

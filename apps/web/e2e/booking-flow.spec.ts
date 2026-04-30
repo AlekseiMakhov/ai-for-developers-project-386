@@ -21,12 +21,10 @@ test.describe('Public booking flow', () => {
     await page.click('text=Выбрать время')
     await expect(page).toHaveURL(new RegExp(`/book/${user.slug}/schedules/.+/slots`))
 
-    // 3. Pick a date — click on tomorrow
-    const tomorrow = getTomorrowISO()
-    const dayNum = parseInt(tomorrow.slice(8, 10), 10).toString()
-    // Find a non-disabled day button matching the day number
-    const dayButtons = page.locator('button').filter({ hasText: new RegExp(`^${dayNum}$`) })
-    await dayButtons.first().click()
+    // 3. Pick a date — click on first available day in the calendar
+    const availableDay = page.locator('[data-testid="calendar-day-available"]').first()
+    await expect(availableDay).toBeVisible({ timeout: 10000 })
+    await availableDay.click()
 
     // Wait for slots to load
     await expect(page.locator('text=Выберите время')).toBeVisible({ timeout: 5000 })

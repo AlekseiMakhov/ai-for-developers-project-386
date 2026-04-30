@@ -31,6 +31,7 @@
       "noAccount": "Нет аккаунта?",
       "register": "Зарегистрироваться",
       "or": "или",
+      "google": "Войти через Google",
       "demo": "Демо-аккаунт",
       "asGuest": "Войти как гость →",
       "invalidCredentials": "Неверный email или пароль"

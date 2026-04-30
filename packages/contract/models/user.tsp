@@ -11,6 +11,7 @@ model User {
   timezone: string;
   slug: string;
   createdAt: utcDateTime;
+  googleId?: string;
 }
 
 model UserCreate {
